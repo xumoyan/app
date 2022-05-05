@@ -201,11 +201,11 @@ mixin _$AccountStore on _AccountStore, Store {
   }
 
   @override
-  void setAccountRecoveryInfo(RecoveryInfo data) {
+  void setAccountRecoveryInfo(Map<dynamic, dynamic> json) {
     final _$actionInfo = _$_AccountStoreActionController.startAction(
         name: '_AccountStore.setAccountRecoveryInfo');
     try {
-      return super.setAccountRecoveryInfo(data);
+      return super.setAccountRecoveryInfo(json);
     } finally {
       _$_AccountStoreActionController.endAction(_$actionInfo);
     }

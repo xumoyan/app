@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -201,31 +201,31 @@ class _ImportAccountFormKeyStoreState extends State<ImportAccountFormKeyStore> {
             },
           ),
         ),
-        Visibility(
-            visible: _supportBiometric,
-            child: Padding(
-              padding: EdgeInsets.only(left: 16, top: 24),
-              child: Row(
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Checkbox(
-                      value: _enableBiometric,
-                      onChanged: (v) {
-                        setState(() {
-                          _enableBiometric = v;
-                        });
-                      },
+        _supportBiometric
+            ? Padding(
+                padding: EdgeInsets.only(left: 16, top: 24),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: _enableBiometric,
+                        onChanged: (v) {
+                          setState(() {
+                            _enableBiometric = v;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 16),
-                    child: Text(dic['unlock.bio.enable']),
-                  )
-                ],
-              ),
-            )),
+                    Padding(
+                      padding: EdgeInsets.only(left: 16),
+                      child: Text(dic['unlock.bio.enable']),
+                    )
+                  ],
+                ),
+              )
+            : Container(),
       ],
     );
   }

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:app/pages/walletConnect/wcPairingConfirmPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/walletConnect/wcPairingConfirmPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';

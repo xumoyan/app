@@ -1,56 +1,53 @@
-import 'package:app/common/components/willPopScopWrapper.dart';
-import 'package:app/common/consts.dart';
-import 'package:app/common/types/pluginDisabled.dart';
-import 'package:app/pages/account/create/backupAccountPage.dart';
-import 'package:app/pages/account/create/createAccountPage.dart';
-import 'package:app/pages/account/createAccountEntryPage.dart';
-import 'package:app/pages/assets/announcementPage.dart';
-import 'package:app/pages/assets/asset/assetPage.dart';
-import 'package:app/pages/assets/asset/locksDetailPage.dart';
-import 'package:app/pages/assets/manage/manageAssetsPage.dart';
-import 'package:app/pages/assets/transfer/detailPage.dart';
-import 'package:app/pages/assets/transfer/transferPage.dart';
-import 'package:app/pages/homePage.dart';
-import 'package:app/pages/networkSelectPage.dart';
-import 'package:app/pages/profile/aboutPage.dart';
-import 'package:app/pages/profile/acalaCrowdLoan/acaCrowdLoanFormPage.dart';
-import 'package:app/pages/profile/acalaCrowdLoan/acaCrowdLoanPage.dart';
-import 'package:app/pages/profile/account/accountManagePage.dart';
-import 'package:app/pages/profile/account/changeNamePage.dart';
-import 'package:app/pages/profile/account/changePasswordPage.dart';
-import 'package:app/pages/profile/account/exportAccountPage.dart';
-import 'package:app/pages/profile/account/exportResultPage.dart';
-import 'package:app/pages/profile/account/signPage.dart';
-import 'package:app/pages/profile/contacts/contactPage.dart';
-import 'package:app/pages/profile/contacts/contactsPage.dart';
-import 'package:app/pages/profile/crowdLoan/contributePage.dart';
-import 'package:app/pages/profile/crowdLoan/crowdLoanPage.dart';
-import 'package:app/pages/profile/recovery/createRecoveryPage.dart';
-import 'package:app/pages/profile/recovery/friendListPage.dart';
-import 'package:app/pages/profile/recovery/initiateRecoveryPage.dart';
-import 'package:app/pages/profile/recovery/recoveryProofPage.dart';
-import 'package:app/pages/profile/recovery/recoverySettingPage.dart';
-import 'package:app/pages/profile/recovery/recoveryStatePage.dart';
-import 'package:app/pages/profile/recovery/txDetailPage.dart';
-import 'package:app/pages/profile/recovery/vouchRecoveryPage.dart';
-import 'package:app/pages/profile/settings/remoteNodeListPage.dart';
-import 'package:app/pages/profile/settings/settingsPage.dart';
-import 'package:app/pages/public/adPage.dart';
-import 'package:app/pages/public/guidePage.dart';
-import 'package:app/pages/public/karCrowdLoanFormPage.dart';
-import 'package:app/pages/public/karCrowdLoanPage.dart';
-import 'package:app/pages/public/karCrowdLoanWaitPage.dart';
-import 'package:app/pages/walletConnect/walletConnectSignPage.dart';
-import 'package:app/pages/walletConnect/wcPairingConfirmPage.dart';
-import 'package:app/pages/walletConnect/wcSessionsPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
-import 'package:app/startPage.dart';
-import 'package:app/store/index.dart';
-import 'package:app/utils/UI.dart';
-import 'package:app/utils/i18n/index.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/common/types/pluginDisabled.dart';
+import 'package:polka_module/pages/account/create/backupAccountPage.dart';
+import 'package:polka_module/pages/account/create/createAccountPage.dart';
+import 'package:polka_module/pages/account/createAccountEntryPage.dart';
+import 'package:polka_module/pages/assets/announcementPage.dart';
+import 'package:polka_module/pages/assets/asset/assetPage.dart';
+import 'package:polka_module/pages/assets/asset/locksDetailPage.dart';
+import 'package:polka_module/pages/assets/manage/manageAssetsPage.dart';
+import 'package:polka_module/pages/assets/transfer/detailPage.dart';
+import 'package:polka_module/pages/assets/transfer/transferPage.dart';
+import 'package:polka_module/pages/homePage.dart';
+import 'package:polka_module/pages/networkSelectPage.dart';
+import 'package:polka_module/pages/profile/aboutPage.dart';
+import 'package:polka_module/pages/profile/acalaCrowdLoan/acaCrowdLoanFormPage.dart';
+import 'package:polka_module/pages/profile/acalaCrowdLoan/acaCrowdLoanPage.dart';
+import 'package:polka_module/pages/profile/account/accountManagePage.dart';
+import 'package:polka_module/pages/profile/account/changeNamePage.dart';
+import 'package:polka_module/pages/profile/account/changePasswordPage.dart';
+import 'package:polka_module/pages/profile/account/exportAccountPage.dart';
+import 'package:polka_module/pages/profile/account/exportResultPage.dart';
+import 'package:polka_module/pages/profile/account/signPage.dart';
+import 'package:polka_module/pages/profile/contacts/contactPage.dart';
+import 'package:polka_module/pages/profile/contacts/contactsPage.dart';
+import 'package:polka_module/pages/profile/crowdLoan/contributePage.dart';
+import 'package:polka_module/pages/profile/crowdLoan/crowdLoanPage.dart';
+import 'package:polka_module/pages/profile/recovery/createRecoveryPage.dart';
+import 'package:polka_module/pages/profile/recovery/friendListPage.dart';
+import 'package:polka_module/pages/profile/recovery/initiateRecoveryPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoveryProofPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoverySettingPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoveryStatePage.dart';
+import 'package:polka_module/pages/profile/recovery/txDetailPage.dart';
+import 'package:polka_module/pages/profile/recovery/vouchRecoveryPage.dart';
+import 'package:polka_module/pages/profile/settings/remoteNodeListPage.dart';
+import 'package:polka_module/pages/profile/settings/settingsPage.dart';
+import 'package:polka_module/pages/public/adPage.dart';
+import 'package:polka_module/pages/public/guidePage.dart';
+import 'package:polka_module/pages/public/karCrowdLoanFormPage.dart';
+import 'package:polka_module/pages/public/karCrowdLoanPage.dart';
+import 'package:polka_module/pages/public/karCrowdLoanWaitPage.dart';
+import 'package:polka_module/pages/walletConnect/walletConnectSignPage.dart';
+import 'package:polka_module/pages/walletConnect/wcPairingConfirmPage.dart';
+import 'package:polka_module/pages/walletConnect/wcSessionsPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/store/index.dart';
+import 'package:polka_module/utils/UI.dart';
+// import 'package:firebase_analytics/firebase_analytics.dart';
+// import 'package:firebase_analytics/observer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -72,9 +69,9 @@ import 'package:polkawallet_ui/pages/qrSignerPage.dart';
 import 'package:polkawallet_ui/pages/scanPage.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/pages/walletExtensionSignPage.dart';
-import 'package:polkawallet_ui/utils/format.dart';
-import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:uni_links/uni_links.dart';
+import 'package:flutter_boost/flutter_boost.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'pages/account/import/importAccountCreatePage.dart';
 import 'pages/account/import/importAccountFormKeyStore.dart';
@@ -87,18 +84,16 @@ const get_storage_container = 'configuration';
 bool _isInitialUriHandled = false;
 
 class WalletApp extends StatefulWidget {
-  WalletApp(this.plugins, this.disabledPlugins, BuildTargets buildTarget) {
-    WalletApp.buildTarget = buildTarget;
-  }
+  WalletApp(this.plugins, this.disabledPlugins, this.buildTarget);
   final List<PolkawalletPlugin> plugins;
   final List<PluginDisabled> disabledPlugins;
-  static BuildTargets buildTarget;
+  final BuildTargets buildTarget;
   @override
   _WalletAppState createState() => _WalletAppState();
 }
 
 class _WalletAppState extends State<WalletApp> {
-  final _analytics = FirebaseAnalytics();
+  // final _analytics = FirebaseAnalytics();
 
   Keyring _keyring;
 
@@ -198,10 +193,8 @@ class _WalletAppState extends State<WalletApp> {
     }
   }
 
-  Future<void> _getAcalaModulesConfig(String pluginName) async {
-    final karModulesConfig = await (pluginName == 'karura'
-        ? WalletApi.getKarModulesConfig()
-        : WalletApi.getAcalaModulesConfig());
+  Future<void> _getAcalaModulesConfig() async {
+    final karModulesConfig = await WalletApi.getKarModulesConfig();
     if (karModulesConfig != null) {
       _store.settings.setLiveModules(karModulesConfig);
     } else {
@@ -212,22 +205,26 @@ class _WalletAppState extends State<WalletApp> {
   }
 
   Future<void> _startPlugin(AppService service) async {
-    // _initWalletConnect();
+    _initWalletConnect();
 
     _service.assets.fetchMarketPriceFromSubScan();
-    // _store.settings.getXcmEnabledChains(service.plugin.basic.name);
+    _store.settings.getXcmEnabledChains(service.plugin.basic.name);
 
     setState(() {
       _connectedNode = null;
     });
-    final connected = await service.plugin.start(_keyring);
+
+    List<NetworkParams> list = new List();
+    list.add(NetworkParams.fromJson(
+        {"name": "bitpie", "endpoint": "https://pnode.getcai.com:2573/"}));
+    final connected = await service.plugin.start(_keyring, nodes: list);
     setState(() {
       _connectedNode = connected;
     });
 
     if (_service.plugin.basic.name == 'karura' ||
         _service.plugin.basic.name == 'acala') {
-      _getAcalaModulesConfig(_service.plugin.basic.name);
+      _getAcalaModulesConfig();
     }
   }
 
@@ -249,7 +246,8 @@ class _WalletAppState extends State<WalletApp> {
         ) >
         network.basic.jsCodeVersion;
 
-    final service = AppService(widget.plugins, network, _keyring, _store);
+    final service = AppService(
+        widget.plugins, network, _keyring, _store, widget.buildTarget);
     service.init();
 
     // we reuse the existing webView instance when we start a new plugin.
@@ -287,41 +285,14 @@ class _WalletAppState extends State<WalletApp> {
     });
   }
 
-  Future<void> _checkBadAddressAndWarn(BuildContext context) async {
-    if (_keyring != null &&
-        _keyring.current != null &&
-        _keyring.current.pubKey ==
-            '0xda99a528d2cbe6b908408c4f887d2d0336394414a9edb474c33a690a4202341a') {
-      final Map dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text(dic['bad.warn']),
-              content: Text(
-                  '${Fmt.address(_keyring.current.address)} ${dic['bad.warn.info']}'),
-              actions: [
-                CupertinoButton(
-                  child: Text(I18n.of(context)
-                      .getDic(i18n_full_dic_ui, 'common')['ok']),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            );
-          });
-    }
-  }
-
   Future<void> _checkUpdate(BuildContext context) async {
     final versions = await WalletApi.getLatestVersion();
-    AppUI.checkUpdate(context, versions, WalletApp.buildTarget,
-        autoCheck: true);
+    AppUI.checkUpdate(context, versions, widget.buildTarget, autoCheck: true);
   }
 
   Future<void> _checkJSCodeUpdate(
       BuildContext context, PolkawalletPlugin plugin,
       {bool needReload = true}) async {
-    _checkBadAddressAndWarn(context);
     // check js code update
     final jsVersions = await WalletApi.fetchPolkadotJSVersion();
     if (jsVersions == null) return;
@@ -354,7 +325,7 @@ class _WalletAppState extends State<WalletApp> {
   //   //   return;
   //   // }
 
-  //   final storeKey = '${show_guide_status_key}_${await Utils.getAppVersion()}';
+  //   final storeKey = '${show_guide_status_key}_$app_beta_version';
   //   final showGuideStatus = storage.read(storeKey);
   //   if (showGuideStatus == null) {
   //     final res = await Navigator.of(context).pushNamed(GuidePage.route);
@@ -374,12 +345,17 @@ class _WalletAppState extends State<WalletApp> {
       final store = AppStore(storage);
       await store.init();
 
-      // await _showGuide(context, storage);
+      // _showGuide(context, storage);
 
       final pluginIndex = widget.plugins
           .indexWhere((e) => e.basic.name == store.settings.network);
-      final service = AppService(widget.plugins,
-          widget.plugins[pluginIndex > -1 ? pluginIndex : 0], _keyring, store);
+      final service = AppService(
+          widget.plugins,
+          widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
+          _keyring,
+          store,
+          widget.buildTarget);
+
       service.init();
       setState(() {
         _store = store;
@@ -396,8 +372,8 @@ class _WalletAppState extends State<WalletApp> {
         _changeLang(Localizations.localeOf(context).toString());
       }
 
-      _checkUpdate(context);
-      await _checkJSCodeUpdate(context, service.plugin, needReload: false);
+      // _checkUpdate(context);
+      // await _checkJSCodeUpdate(context, service.plugin, needReload: false);
 
       final useLocalJS = WalletApi.getPolkadotJSVersion(
             _store.storage,
@@ -413,132 +389,13 @@ class _WalletAppState extends State<WalletApp> {
                 _store.storage, service.plugin.basic.name)
             : null,
       );
-
       if (_keyring.keyPairs.length > 0) {
         _store.assets.loadCache(_keyring.current, _service.plugin.basic.name);
       }
 
       _startPlugin(service);
     }
-
     return _keyring.allAccounts.length;
-  }
-
-  Map<String, Widget Function(BuildContext)> _getRoutes() {
-    final pluginPages = _service != null && _service.plugin != null
-        ? _service.plugin.getRoutes(_keyring)
-        : {};
-    return {
-      /// pages of plugin
-      ...pluginPages,
-
-      StartPage.route: (_) {
-        _startApp(context);
-        return StartPage();
-      },
-
-      /// basic pages
-      HomePage.route: (_) => WillPopScopWrapper(
-            Observer(
-              builder: (BuildContext context) {
-                final accountCreated =
-                    _service?.store?.account?.accountCreated ?? false;
-                return FutureBuilder<int>(
-                  future: _startApp(context),
-                  builder: (_, AsyncSnapshot<int> snapshot) {
-                    if (snapshot.hasData && _service != null) {
-                      return snapshot.data > 0
-                          ? HomePage(_service, _connectedNode,
-                              _checkJSCodeUpdate, _switchNetwork)
-                          : CreateAccountEntryPage();
-                    } else {
-                      return Container(color: Theme.of(context).canvasColor);
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-      TxConfirmPage.route: (_) => TxConfirmPage(
-            _service.plugin,
-            _keyring,
-            _service.account.getPassword,
-            txDisabledCalls: _service.store.settings
-                .getDisabledCalls(_service.plugin.basic.name),
-          ),
-      WalletExtensionSignPage.route: (_) => WalletExtensionSignPage(
-          _service.plugin, _keyring, _service.account.getPassword),
-      QrSenderPage.route: (_) => QrSenderPage(_service.plugin, _keyring),
-      QrSignerPage.route: (_) => QrSignerPage(_service.plugin, _keyring),
-      ScanPage.route: (_) => ScanPage(_service.plugin, _keyring),
-      AccountListPage.route: (_) => AccountListPage(_service.plugin, _keyring),
-      AccountQrCodePage.route: (_) =>
-          AccountQrCodePage(_service.plugin, _keyring),
-      NetworkSelectPage.route: (_) => NetworkSelectPage(
-          _service, widget.plugins, widget.disabledPlugins, _changeNetwork),
-      WCPairingConfirmPage.route: (_) => WCPairingConfirmPage(_service),
-      WCSessionsPage.route: (_) => WCSessionsPage(_service),
-      WalletConnectSignPage.route: (_) =>
-          WalletConnectSignPage(_service, _service.account.getPassword),
-      GuidePage.route: (_) => GuidePage(),
-      AdPage.route: (_) => AdPage(),
-      KarCrowdLoanPage.route: (_) => KarCrowdLoanPage(_service, _connectedNode),
-      KarCrowdLoanWaitPage.route: (_) => KarCrowdLoanWaitPage(),
-      KarCrowdLoanFormPage.route: (_) =>
-          KarCrowdLoanFormPage(_service, _connectedNode),
-
-      /// account
-      CreateAccountEntryPage.route: (_) => CreateAccountEntryPage(),
-      CreateAccountPage.route: (_) => CreateAccountPage(_service),
-      BackupAccountPage.route: (_) => BackupAccountPage(_service),
-      DAppWrapperPage.route: (_) => DAppWrapperPage(_service.plugin, _keyring),
-      SelectImportTypePage.route: (_) => SelectImportTypePage(_service),
-      ImportAccountFormMnemonic.route: (_) =>
-          ImportAccountFormMnemonic(_service),
-      ImportAccountFromRawSeed.route: (_) => ImportAccountFromRawSeed(_service),
-      ImportAccountFromRawSeed.route: (_) => ImportAccountFromRawSeed(_service),
-      ImportAccountFormKeyStore.route: (_) =>
-          ImportAccountFormKeyStore(_service),
-      ImportAccountCreatePage.route: (_) => ImportAccountCreatePage(_service),
-
-      /// assets
-      AssetPage.route: (_) => AssetPage(_service),
-      TransferDetailPage.route: (_) => TransferDetailPage(_service),
-      TransferPage.route: (_) => TransferPage(_service),
-      LocksDetailPage.route: (_) => LocksDetailPage(_service),
-      ManageAssetsPage.route: (_) => ManageAssetsPage(_service),
-      AnnouncementPage.route: (_) => AnnouncementPage(),
-
-      /// profile
-      SignMessagePage.route: (_) => SignMessagePage(_service),
-      ContactsPage.route: (_) => ContactsPage(_service),
-      ContactPage.route: (_) => ContactPage(_service),
-      AboutPage.route: (_) => AboutPage(_service),
-      AccountManagePage.route: (_) => AccountManagePage(_service),
-      ChangeNamePage.route: (_) => ChangeNamePage(_service),
-      ChangePasswordPage.route: (_) => ChangePasswordPage(_service),
-      ExportAccountPage.route: (_) => ExportAccountPage(_service),
-      ExportResultPage.route: (_) => ExportResultPage(),
-      SettingsPage.route: (_) =>
-          SettingsPage(_service, _changeLang, _changeNode),
-      RemoteNodeListPage.route: (_) =>
-          RemoteNodeListPage(_service, _changeNode),
-      CreateRecoveryPage.route: (_) => CreateRecoveryPage(_service),
-      FriendListPage.route: (_) => FriendListPage(_service),
-      RecoverySettingPage.route: (_) => RecoverySettingPage(_service),
-      RecoveryStatePage.route: (_) => RecoveryStatePage(_service),
-      RecoveryProofPage.route: (_) => RecoveryProofPage(_service),
-      InitiateRecoveryPage.route: (_) => InitiateRecoveryPage(_service),
-      VouchRecoveryPage.route: (_) => VouchRecoveryPage(_service),
-      TxDetailPage.route: (_) => TxDetailPage(_service),
-
-      /// crowd loan
-      CrowdLoanPage.route: (_) => CrowdLoanPage(_service, _connectedNode),
-      ContributePage.route: (_) => ContributePage(_service),
-      AcaCrowdLoanPage.route: (_) => AcaCrowdLoanPage(_service, _connectedNode),
-      AcaCrowdLoanFormPage.route: (_) =>
-          AcaCrowdLoanFormPage(_service, _connectedNode),
-    };
   }
 
   void _handleIncomingAppLinks() {
@@ -580,40 +437,444 @@ class _WalletAppState extends State<WalletApp> {
     _handleInitialAppLinks();
   }
 
-  @override
-  Widget build(_) {
+  Map<String, FlutterBoostRouteFactory> _getRoutes() {
+    // final pluginPages = _service != null && _service.plugin != null
+    //     ? _service.plugin.getRoutes(_keyring)
+    //     : {};
+    return {
+      /// pages of plugin
+      // ...pluginPages,
+      HomePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (BuildContext context) => FutureBuilder<int>(
+                  future: _startApp(context),
+                  builder: (_, AsyncSnapshot<int> snapshot) {
+                    if (snapshot.hasData && _service != null) {
+                      return snapshot.data > 0
+                          ? HomePage(_service, _connectedNode,
+                              _checkJSCodeUpdate, _switchNetwork)
+                          : CreateAccountEntryPage(
+                              widget.plugins, widget.buildTarget);
+                    } else {
+                      return Container(color: Theme.of(context).canvasColor);
+                    }
+                  },
+                ));
+      },
+      TxConfirmPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => TxConfirmPage(
+                _service.plugin, _keyring, _service.account.getPassword));
+      },
+      WalletExtensionSignPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WalletExtensionSignPage(
+              _service.plugin, _keyring, _service.account.getPassword),
+        );
+      },
+      QrSenderPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => QrSenderPage(_service.plugin, _keyring));
+      },
+      QrSignerPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => QrSignerPage(_service.plugin, _keyring));
+      },
+      ScanPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ScanPage(_service.plugin, _keyring));
+      },
+      AccountListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountListPage(_service.plugin, _keyring),
+        );
+      },
+      AccountQrCodePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountQrCodePage(_service.plugin, _keyring),
+        );
+      },
+      NetworkSelectPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => NetworkSelectPage(_service, widget.plugins,
+                widget.disabledPlugins, _changeNetwork));
+      },
+      WCPairingConfirmPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WCPairingConfirmPage(_service),
+        );
+      },
+      WCSessionsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WCSessionsPage(_service),
+        );
+      },
+      WalletConnectSignPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) =>
+              WalletConnectSignPage(_service, _service.account.getPassword),
+        );
+      },
+      GuidePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => GuidePage(),
+        );
+      },
+      AdPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AdPage(),
+        );
+      },
+      KarCrowdLoanPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => KarCrowdLoanPage(_service, _connectedNode),
+        );
+      },
+      KarCrowdLoanWaitPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => KarCrowdLoanWaitPage(),
+        );
+      },
+      KarCrowdLoanFormPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => KarCrowdLoanFormPage(_service, _connectedNode),
+        );
+      },
+
+      /// account
+      CreateAccountEntryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (BuildContext context) =>
+                CreateAccountEntryPage(widget.plugins, widget.buildTarget));
+      },
+      CreateAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => CreateAccountPage(_service));
+      },
+      BackupAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => BackupAccountPage(_service));
+      },
+      DAppWrapperPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => DAppWrapperPage(_service.plugin, _keyring));
+      },
+      SelectImportTypePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => SelectImportTypePage(_service));
+      },
+      ImportAccountFormMnemonic.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFormMnemonic(_service));
+      },
+      ImportAccountFromRawSeed.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFromRawSeed(_service));
+      },
+      ImportAccountFormKeyStore.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFormKeyStore(_service));
+      },
+      ImportAccountCreatePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountCreatePage(_service));
+      },
+
+      /// assets
+      AssetPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AssetPage(_service),
+        );
+      },
+      TransferDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TransferDetailPage(_service),
+        );
+      },
+      TransferPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TransferPage(widget.plugins, widget.buildTarget),
+        );
+      },
+      LocksDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (BuildContext context) => FutureBuilder<int>(
+                  future: _startApp(context),
+                  builder: (_, AsyncSnapshot<int> snapshot) {
+                    if (snapshot.hasData && _service != null) {
+                      return LocksDetailPage(_service);
+                    } else {
+                      return Container(color: Theme.of(context).canvasColor);
+                    }
+                  },
+                ));
+      },
+      ManageAssetsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ManageAssetsPage(_service),
+        );
+      },
+      AnnouncementPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AnnouncementPage(),
+        );
+      },
+
+      /// profile
+      SignMessagePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => SignMessagePage(_service),
+        );
+      },
+      ContactsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ContactsPage(_service),
+        );
+      },
+      ContactPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ContactPage(_service),
+        );
+      },
+      AboutPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AboutPage(_service),
+        );
+      },
+      AccountManagePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountManagePage(_service),
+        );
+      },
+      ChangeNamePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ChangeNamePage(_service),
+        );
+      },
+      ChangePasswordPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ChangePasswordPage(_service),
+        );
+      },
+      ExportAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ExportAccountPage(_service),
+        );
+      },
+      ExportResultPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ExportResultPage(),
+        );
+      },
+      SettingsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => SettingsPage(_service, _changeLang, _changeNode),
+        );
+      },
+      RemoteNodeListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RemoteNodeListPage(_service, _changeNode),
+        );
+      },
+      CreateRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => CreateRecoveryPage(_service),
+        );
+      },
+      FriendListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => FriendListPage(_service),
+        );
+      },
+      RecoverySettingPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoverySettingPage(_service),
+        );
+      },
+      RecoveryStatePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoveryStatePage(_service),
+        );
+      },
+      RecoveryProofPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoveryProofPage(_service),
+        );
+      },
+      InitiateRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => InitiateRecoveryPage(_service),
+        );
+      },
+      VouchRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => VouchRecoveryPage(_service),
+        );
+      },
+      TxDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TxDetailPage(_service),
+        );
+      },
+
+      /// crowd loan
+      CrowdLoanPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => CrowdLoanPage(_service, _connectedNode),
+        );
+      },
+      ContributePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ContributePage(_service),
+        );
+      },
+      AcaCrowdLoanPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AcaCrowdLoanPage(_service, _connectedNode),
+        );
+      },
+      AcaCrowdLoanFormPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AcaCrowdLoanFormPage(_service, _connectedNode),
+        );
+      },
+    };
+  }
+
+  Route<dynamic> routeFactory(RouteSettings settings, String uniqueId) {
     final routes = _getRoutes();
+    FlutterBoostRouteFactory func = routes[settings.name];
+    if (func == null) {
+      return null;
+    }
+    return func(settings, uniqueId);
+  }
+
+  Widget appBuilder(Widget home) {
+    return MaterialApp(
+      title: 'Polkawallet',
+      theme: _theme ??
+          _getAppTheme(
+            widget.plugins[0].basic.primaryColor,
+            secondaryColor: widget.plugins[0].basic.gradientColor,
+          ),
+      localizationsDelegates: [
+        AppLocalizationsDelegate(_locale ?? Locale('en', '')),
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', ''),
+        const Locale('zh', ''),
+      ],
+      home: home,
+      debugShowCheckedModeBanner: true,
+
+      ///必须加上builder参数，否则showDialog等会出问题
+      builder: (_, __) {
+        return home;
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // return FlutterBoostApp(routeFactory,
+    //     appBuilder: appBuilder, initialRoute: '/');
     return GestureDetector(
       onTapUp: (_) {
         FocusScope.of(context).focusedChild?.unfocus();
       },
       child: ScreenUtilInit(
           designSize: Size(1170, 2532),
-          builder: () => MaterialApp(
-                title: 'Polkawallet',
-                theme: _theme ??
-                    _getAppTheme(
-                      widget.plugins[0].basic.primaryColor,
-                      secondaryColor: widget.plugins[0].basic.gradientColor,
-                    ),
-                debugShowCheckedModeBanner: false,
-                localizationsDelegates: [
-                  AppLocalizationsDelegate(_locale ?? Locale('en', '')),
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                ],
-                supportedLocales: [
-                  const Locale('en', ''),
-                  const Locale('zh', ''),
-                ],
-                initialRoute: StartPage.route,
-                onGenerateRoute: (settings) => CupertinoPageRoute(
-                    builder: routes[settings.name], settings: settings),
-                navigatorObservers: [
-                  FirebaseAnalyticsObserver(analytics: _analytics)
-                ],
-              )),
+          builder: () => FlutterBoostApp(routeFactory,
+              appBuilder: appBuilder, initialRoute: '/')),
     );
   }
+
+  // @override
+  // Widget build(_) {
+  //   final routes = _getRoutes();
+  //   return GestureDetector(
+  //     onTapUp: (_) {
+  //       FocusScope.of(context).focusedChild?.unfocus();
+  //     },
+  //     child: MaterialApp(
+  //       title: 'Polkawallet',
+  //       theme: _theme ??
+  //           _getAppTheme(
+  //             widget.plugins[0].basic.primaryColor,
+  //             secondaryColor: widget.plugins[0].basic.gradientColor,
+  //           ),
+  //       debugShowCheckedModeBanner: false,
+  //       localizationsDelegates: [
+  //         AppLocalizationsDelegate(_locale ?? Locale('en', '')),
+  //         GlobalMaterialLocalizations.delegate,
+  //         GlobalCupertinoLocalizations.delegate,
+  //         GlobalWidgetsLocalizations.delegate,
+  //       ],
+  //       supportedLocales: [
+  //         const Locale('en', ''),
+  //         const Locale('zh', ''),
+  //       ],
+  //       initialRoute: HomePage.route,
+  //       onGenerateRoute: (settings) => CupertinoPageRoute(
+  //           builder: routes[settings.name], settings: settings),
+  //       // navigatorObservers: [FirebaseAnalyticsObserver(analytics: _analytics)],
+  //     ),
+  //   );
+  // }
 }

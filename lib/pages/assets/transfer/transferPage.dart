@@ -1,6 +1,6 @@
-import 'package:app/common/consts.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,12 +11,18 @@ import 'package:polkawallet_sdk/plugin/index.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/addressInputField.dart';
+import 'package:polkawallet_ui/components/tapTooltip.dart';
 import 'package:polkawallet_ui/components/textTag.dart';
 import 'package:polkawallet_ui/components/txButton.dart';
 import 'package:polkawallet_ui/pages/scanPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
+import 'package:polkawallet_sdk/storage/keyring.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:polka_module/store/index.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/global.dart';
 
 class TransferPageParams {
   TransferPageParams({
@@ -28,10 +34,11 @@ class TransferPageParams {
 }
 
 class TransferPage extends StatefulWidget {
-  const TransferPage(this.service);
+  const TransferPage(this.plugins, this.buildTarget);
 
   static final String route = '/assets/transfer';
-  final AppService service;
+  final List<PolkawalletPlugin> plugins;
+  final BuildTargets buildTarget;
 
   @override
   _TransferPageState createState() => _TransferPageState();
@@ -39,6 +46,8 @@ class TransferPage extends StatefulWidget {
 
 class _TransferPageState extends State<TransferPage> {
   final _formKey = GlobalKey<FormState>();
+  AppService service;
+  Keyring keyring;
 
   final TextEditingController _amountCtrl = new TextEditingController();
 
@@ -55,17 +64,16 @@ class _TransferPageState extends State<TransferPage> {
   bool _submitting = false;
 
   Future<String> _checkAccountTo(KeyPairData acc) async {
-    if (widget.service.keyring.allAccounts
-            .indexWhere((e) => e.pubKey == acc.pubKey) >=
+    if (service.keyring.allAccounts.indexWhere((e) => e.pubKey == acc.pubKey) >=
         0) {
       return null;
     }
 
-    final addressCheckValid = await widget.service.plugin.sdk.webView
-        .evalJavascript('(account.checkAddressFormat != undefined ? {}:null)',
-            wrapPromise: false);
+    final addressCheckValid = await service.plugin.sdk.webView.evalJavascript(
+        '(account.checkAddressFormat != undefined ? {}:null)',
+        wrapPromise: false);
     if (addressCheckValid != null) {
-      final res = await widget.service.plugin.sdk.api.account
+      final res = await service.plugin.sdk.api.account
           .checkAddressFormat(acc.address, _chainTo.basic.ss58);
       if (res != null && !res) {
         return I18n.of(context)
@@ -91,8 +99,8 @@ class _TransferPageState extends State<TransferPage> {
   }
 
   bool _isFromXTokensParaChain() {
-    return widget.service.plugin.basic.name == para_chain_name_karura ||
-        widget.service.plugin.basic.name == para_chain_name_bifrost;
+    return service.plugin.basic.name == para_chain_name_karura ||
+        service.plugin.basic.name == para_chain_name_bifrost;
   }
 
   bool _isToParaChain() {
@@ -104,17 +112,14 @@ class _TransferPageState extends State<TransferPage> {
 
   Future<TxConfirmParams> _getTxParams() async {
     if (_accountToError == null &&
-        _amountCtrl.text.length > 0 &&
         _formKey.currentState.validate() &&
         !_submitting) {
       final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
-      final symbol =
-          (widget.service.plugin.networkState.tokenSymbol ?? [''])[0];
-      final decimals =
-          (widget.service.plugin.networkState.tokenDecimals ?? [12])[0];
+      final symbol = (service.plugin.networkState.tokenSymbol ?? [''])[0];
+      final decimals = (service.plugin.networkState.tokenDecimals ?? [12])[0];
 
       /// send XCM tx if cross chain
-      if (_chainTo.basic.name != widget.service.plugin.basic.name) {
+      if (_chainTo.basic.name != service.plugin.basic.name) {
         final isFromXTokensParaChain = _isFromXTokensParaChain();
         final isToParaChain = _isToParaChain();
 
@@ -134,10 +139,10 @@ class _TransferPageState extends State<TransferPage> {
 
         final amount =
             Fmt.tokenInt(_amountCtrl.text.trim(), decimals).toString();
-        final isV1XCM = await widget.service.plugin.sdk.webView.evalJavascript(
+        final isV1XCM = await service.plugin.sdk.webView.evalJavascript(
             'api.createType(api.tx.$txModule.$txCall.meta.args[0].toJSON()["type"]).defKeys.includes("V1")',
             wrapPromise: false);
-        final is9100 = await widget.service.plugin.sdk.webView.evalJavascript(
+        final is9100 = await service.plugin.sdk.webView.evalJavascript(
             'api.tx.$txModule.$txCall.meta.args.length === 5',
             wrapPromise: false);
 
@@ -147,7 +152,7 @@ class _TransferPageState extends State<TransferPage> {
           setState(() {
             _submitting = true;
           });
-          final pk = await widget.service.plugin.sdk.api.account
+          final pk = await service.plugin.sdk.api.account
               .decodeAddress([_accountTo.address]);
           setState(() {
             _submitting = false;
@@ -159,28 +164,22 @@ class _TransferPageState extends State<TransferPage> {
 
         List paramsX;
         if (isFromXTokensParaChain && isToParaChain) {
-          final isV2XTokens = await widget.service.plugin.sdk.webView
-              .evalJavascript(
-                  'api.createType(api.tx.$txModule.$txCall.meta.args[2].toJSON()["type"]).defKeys.includes("V1")',
-                  wrapPromise: false);
-          final dest = {
-            'parents': 1,
-            'interior': {
-              'X2': [
-                {'Parachain': _chainTo.basic.parachainId},
-                {
-                  'AccountId32': {'id': destPubKey, 'network': 'Any'}
-                }
-              ]
-            }
-          };
-
           /// this is transfer KAR from Karura to Bifrost
           /// paramsX: [token, amount, dest, dest_weight]
           paramsX = [
             {'Token': symbol},
             amount,
-            isV2XTokens ? {'V1': dest} : dest,
+            [
+              1,
+              {
+                'X2': [
+                  {'Parachain': _chainTo.basic.parachainId},
+                  {
+                    'AccountId32': {'id': destPubKey, 'network': 'Any'}
+                  }
+                ]
+              }
+            ],
             xcm_dest_weight_bifrost
           ];
         } else {
@@ -263,30 +262,17 @@ class _TransferPageState extends State<TransferPage> {
       return _fee.partialFee.toString();
     }
 
-    TxConfirmParams txParams;
-    if (_fee == null) {
-      txParams = TxConfirmParams(
-        txTitle: '',
-        module: 'balances',
-        call: _keepAlive ? 'transferKeepAlive' : 'transfer',
-        txDisplay: {},
-        params: [
-          widget.service.keyring.allWithContacts[0].address,
-          '10000000000',
-        ],
-      );
-    } else {
-      txParams = await _getTxParams();
-    }
+    final txParams = await _getTxParams();
+    if (txParams == null) return '';
 
     final txInfo = TxInfoData(
         txParams.module,
         txParams.call,
-        TxSenderData(widget.service.keyring.current.address,
-            widget.service.keyring.current.pubKey));
+        TxSenderData(
+            service.keyring.current.address, service.keyring.current.pubKey));
 
-    final fee = await widget.service.plugin.sdk.api.tx
-        .estimateFees(txInfo, txParams.params);
+    final fee =
+        await service.plugin.sdk.api.tx.estimateFees(txInfo, txParams.params);
     if (mounted) {
       setState(() {
         _fee = fee;
@@ -304,8 +290,7 @@ class _TransferPageState extends State<TransferPage> {
   }
 
   Future<void> _setMaxAmount(BigInt available, BigInt existAmount) async {
-    final decimals =
-        (widget.service.plugin.networkState.tokenDecimals ?? [12])[0];
+    final decimals = (service.plugin.networkState.tokenDecimals ?? [12])[0];
     final fee = await _getTxFee();
     // keep 1.2 * amount of estimated fee left
     final max = available -
@@ -332,7 +317,7 @@ class _TransferPageState extends State<TransferPage> {
     });
 
     final res = await Future.wait([
-      widget.service.plugin.sdk.api.account.getAddressIcons([acc.address]),
+      service.plugin.sdk.api.account.getAddressIcons([acc.address]),
       _checkAccountTo(acc),
     ]);
     if (res != null && res[0] != null) {
@@ -359,9 +344,9 @@ class _TransferPageState extends State<TransferPage> {
   void _onSelectChain() {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
 
-    final allPlugins = widget.service.allPlugins.toList();
+    final allPlugins = service.allPlugins.toList();
     allPlugins.retainWhere((e) {
-      return [widget.service.plugin.basic.name, ..._xcmEnabledChains]
+      return [service.plugin.basic.name, ..._xcmEnabledChains]
               .indexOf(e.basic.name) >
           -1;
     });
@@ -393,10 +378,9 @@ class _TransferPageState extends State<TransferPage> {
               if (e.basic.name != _chainTo.basic.name) {
                 // set ss58 of _chainTo so we can get according address
                 // from AddressInputField
-                widget.service.keyring.setSS58(e.basic.ss58);
-                final options = widget.service.keyring.allWithContacts.toList();
-                widget.service.keyring
-                    .setSS58(widget.service.plugin.basic.ss58);
+                service.keyring.setSS58(e.basic.ss58);
+                final options = service.keyring.allWithContacts.toList();
+                service.keyring.setSS58(service.plugin.basic.ss58);
                 setState(() {
                   _chainTo = e;
                   _accountOptions = options;
@@ -431,29 +415,75 @@ class _TransferPageState extends State<TransferPage> {
     );
   }
 
+  Future<int> initSdk() async {
+    Keyring _keyring = Keyring();
+    await _keyring
+        .init(widget.plugins.map((e) => e.basic.ss58).toSet().toList());
+
+    final storage = GetStorage(get_storage_container);
+    final store = AppStore(storage);
+    await store.init();
+
+    final pluginIndex = widget.plugins
+        .indexWhere((e) => e.basic.name == store.settings.network);
+    final service = AppService(
+        widget.plugins,
+        widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
+        _keyring,
+        store,
+        widget.buildTarget);
+
+    service.init();
+
+    final useLocalJS = WalletApi.getPolkadotJSVersion(
+          store.storage,
+          service.plugin.basic.name,
+          service.plugin.basic.jsCodeVersion,
+        ) >
+        service.plugin.basic.jsCodeVersion;
+
+    await service.plugin.beforeStart(
+      _keyring,
+      jsCode: useLocalJS
+          ? WalletApi.getPolkadotJSCode(
+              store.storage, service.plugin.basic.name)
+          : null,
+    );
+    if (_keyring.keyPairs.length > 0) {
+      store.assets.loadCache(_keyring.current, service.plugin.basic.name);
+    }
+    this.service = service;
+    this.keyring = _keyring;
+    return _keyring.allAccounts.length;
+  }
+
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await initSdk();
       _getTxFee();
 
-      final TransferPageParams args = ModalRoute.of(context).settings.arguments;
+      final Map<String, dynamic> arguments =
+          Map<String, dynamic>.from(ModalRoute.of(context).settings.arguments);
+      final TransferPageParams args = arguments["params"];
+
       if (args.address != null) {
         _updateAccountTo(args.address);
       } else {
-        if (widget.service.keyring.allWithContacts.length > 0) {
+        if (service.keyring.allWithContacts.length > 0) {
           setState(() {
-            _accountTo = widget.service.keyring.allWithContacts[0];
+            _accountTo = service.keyring.allWithContacts[0];
           });
         }
       }
 
-      final xcmEnabledChains = await widget.service.store.settings
-          .getXcmEnabledChains(widget.service.plugin.basic.name);
+      final xcmEnabledChains = await service.store.settings
+          .getXcmEnabledChains(service.plugin.basic.name);
       setState(() {
-        _chainTo = widget.service.plugin;
-        _accountOptions = widget.service.keyring.allWithContacts.toList();
+        _chainTo = service.plugin;
+        _accountOptions = service.keyring.allWithContacts.toList();
         _xcmEnabledChains = xcmEnabledChains;
       });
     });
@@ -467,464 +497,388 @@ class _TransferPageState extends State<TransferPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) {
-        final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
-        final symbol =
-            (widget.service.plugin.networkState.tokenSymbol ?? [''])[0];
-        final decimals =
-            (widget.service.plugin.networkState.tokenDecimals ?? [12])[0];
+    return Center(
+        child: FutureBuilder<int>(
+      future: initSdk(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasData && service != null) {
+          return Observer(
+            builder: (_) {
+              final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
+              final symbol =
+                  (service.plugin.networkState.tokenSymbol ?? [''])[0];
+              final decimals =
+                  (service.plugin.networkState.tokenDecimals ?? [12])[0];
 
-        final available = Fmt.balanceInt(
-            (widget.service.plugin.balances.native?.availableBalance ?? 0)
-                .toString());
-        final notTransferable = Fmt.balanceInt(
-                (widget.service.plugin.balances.native?.reservedBalance ?? 0)
-                    .toString()) +
-            Fmt.balanceInt(
-                (widget.service.plugin.balances.native?.lockedBalance ?? 0)
-                    .toString());
+              final available = Fmt.balanceInt(
+                  (service.plugin.balances.native?.availableBalance ?? 0)
+                      .toString());
+              final reserved = Fmt.balanceInt(
+                  (service.plugin.balances.native?.reservedBalance ?? 0)
+                      .toString());
+              final locked = Fmt.balanceInt(
+                  (service.plugin.balances.native?.lockedBalance ?? 0)
+                      .toString());
+              final notTransferable = reserved + locked;
 
-        final canCrossChain =
-            _xcmEnabledChains != null && _xcmEnabledChains.length > 0;
+              final canCrossChain =
+                  _xcmEnabledChains != null && _xcmEnabledChains.length > 0;
 
-        final destChainName = _chainTo?.basic?.name ?? 'karura';
-        final isCrossChain = widget.service.plugin.basic.name != destChainName;
+              final destChainName = _chainTo?.basic?.name ?? 'karura';
+              final isCrossChain = service.plugin.basic.name != destChainName;
 
-        final existDeposit = Fmt.balanceInt(widget
-            .service.plugin.networkConst['balances']['existentialDeposit']
-            .toString());
-        final existAmount = _getExistAmount(notTransferable, existDeposit);
+              final existDeposit = Fmt.balanceInt(service
+                  .plugin.networkConst['balances']['existentialDeposit']
+                  .toString());
+              final existAmount =
+                  _getExistAmount(notTransferable, existDeposit);
 
-        final destExistDeposit = isCrossChain
-            ? Fmt.balanceInt(xcm_send_fees[destChainName]['existentialDeposit'])
-            : BigInt.zero;
-        final destFee = isCrossChain
-            ? Fmt.balanceInt(xcm_send_fees[destChainName]['fee'])
-            : BigInt.zero;
+              final destExistDeposit = isCrossChain
+                  ? Fmt.balanceInt(
+                      xcm_send_fees[destChainName]['existentialDeposit'])
+                  : BigInt.zero;
+              final destFee = isCrossChain
+                  ? Fmt.balanceInt(xcm_send_fees[destChainName]['fee'])
+                  : BigInt.zero;
 
-        final colorGrey = Theme.of(context).unselectedWidgetColor;
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('${dic['transfer']} $symbol'),
-            centerTitle: true,
-            actions: <Widget>[
-              IconButton(
-                padding: EdgeInsets.only(right: 8),
-                icon: SvgPicture.asset(
-                  'assets/images/scan.svg',
-                  color: Theme.of(context).cardColor,
-                  width: 28,
+              final colorGrey = Theme.of(context).unselectedWidgetColor;
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text('${dic['transfer']} $symbol'),
+                  centerTitle: true,
+                  actions: <Widget>[
+                    IconButton(
+                      padding: EdgeInsets.only(right: 8),
+                      icon: SvgPicture.asset(
+                        'assets/images/scan.svg',
+                        color: Theme.of(context).cardColor,
+                        width: 28,
+                      ),
+                      onPressed: _onScan,
+                    )
+                  ],
                 ),
-                onPressed: _onScan,
-              )
-            ],
-          ),
-          body: SafeArea(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AddressInputField(
-                          widget.service.plugin.sdk.api,
-                          _accountOptions,
-                          label: dic['cross.to'],
-                          initialValue: _accountTo,
-                          onChanged: (KeyPairData acc) async {
-                            final accValid = await _checkAccountTo(acc);
-                            setState(() {
-                              _accountTo = acc;
-                              _accountToError = accValid;
-                            });
-                          },
-                          key: ValueKey<KeyPairData>(_accountTo),
-                        ),
-                        Visibility(
-                            visible: _accountToError != null,
-                            child: Container(
-                              margin: EdgeInsets.only(top: 4),
-                              child: Text(_accountToError ?? "",
-                                  style: TextStyle(
-                                      fontSize: 12, color: Colors.red)),
-                            )),
-                        Visibility(
-                            visible: canCrossChain,
-                            child: GestureDetector(
-                              child: Container(
-                                color: Theme.of(context).canvasColor,
-                                margin: EdgeInsets.only(top: 16, bottom: 16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: EdgeInsets.only(bottom: 4),
-                                      child: Text(
-                                        dic['to.chain'],
-                                        style: TextStyle(
-                                            color: colorGrey, fontSize: 12),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        Row(
+                body: SafeArea(
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AddressInputField(
+                                service.plugin.sdk.api,
+                                _accountOptions,
+                                label: dic['cross.to'],
+                                initialValue: _accountTo,
+                                onChanged: (KeyPairData acc) async {
+                                  final accValid = await _checkAccountTo(acc);
+                                  setState(() {
+                                    _accountTo = acc;
+                                    _accountToError = accValid;
+                                  });
+                                },
+                                key: ValueKey<KeyPairData>(_accountTo),
+                              ),
+                              _accountToError != null
+                                  ? Container(
+                                      margin: EdgeInsets.only(top: 4),
+                                      child: Text(_accountToError,
+                                          style: TextStyle(
+                                              fontSize: 12, color: Colors.red)),
+                                    )
+                                  : Container(),
+                              canCrossChain
+                                  ? GestureDetector(
+                                      child: Container(
+                                        color: Theme.of(context).canvasColor,
+                                        margin: EdgeInsets.only(
+                                            top: 16, bottom: 16),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: <Widget>[
-                                            Container(
-                                              margin: EdgeInsets.only(right: 8),
-                                              width: 32,
-                                              height: 32,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(32),
-                                                child: _chainTo?.basic?.icon,
+                                            Padding(
+                                              padding:
+                                                  EdgeInsets.only(bottom: 4),
+                                              child: Text(
+                                                dic['to.chain'],
+                                                style: TextStyle(
+                                                    color: colorGrey,
+                                                    fontSize: 12),
                                               ),
                                             ),
-                                            Text(destChainName.toUpperCase())
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: <Widget>[
+                                                Row(
+                                                  children: <Widget>[
+                                                    Container(
+                                                      margin: EdgeInsets.only(
+                                                          right: 8),
+                                                      width: 32,
+                                                      height: 32,
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(32),
+                                                        child: _chainTo
+                                                            ?.basic?.icon,
+                                                      ),
+                                                    ),
+                                                    Text(destChainName
+                                                        .toUpperCase())
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    isCrossChain
+                                                        ? TextTag(
+                                                            dic['cross.chain'],
+                                                            margin:
+                                                                EdgeInsets.only(
+                                                                    right: 8),
+                                                            color: Colors.red)
+                                                        : Container(),
+                                                    Icon(
+                                                      Icons.arrow_forward_ios,
+                                                      size: 18,
+                                                      color: colorGrey,
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                        Row(
+                                      ),
+                                      onTap: _onSelectChain,
+                                    )
+                                  : Container(),
+                              Form(
+                                key: _formKey,
+                                child: TextFormField(
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: InputDecoration(
+                                    hintText: dic['amount'],
+                                    labelText:
+                                        '${dic['amount']} (${dic['balance']}: ${Fmt.priceFloorBigInt(
+                                      available,
+                                      decimals,
+                                      lengthMax: 6,
+                                    )})',
+                                    suffix: GestureDetector(
+                                      child: Text(dic['amount.max'],
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColor)),
+                                      onTap: () =>
+                                          _setMaxAmount(available, existAmount),
+                                    ),
+                                  ),
+                                  inputFormatters: [
+                                    UI.decimalInputFormatter(decimals)
+                                  ],
+                                  controller: _amountCtrl,
+                                  keyboardType: TextInputType.numberWithOptions(
+                                      decimal: true),
+                                  validator: (v) {
+                                    if (v.isEmpty) {
+                                      return dic['amount.error'];
+                                    }
+                                    final input = Fmt.tokenInt(v, decimals);
+                                    final feeLeft = available -
+                                        input -
+                                        (_keepAlive
+                                            ? existAmount
+                                            : BigInt.zero);
+                                    BigInt fee = BigInt.zero;
+                                    if (feeLeft <
+                                            Fmt.tokenInt('0.02', decimals) &&
+                                        _fee?.partialFee != null) {
+                                      fee = Fmt.balanceInt(
+                                          _fee.partialFee.toString());
+                                    }
+                                    if (feeLeft - fee < BigInt.zero) {
+                                      return dic['amount.low'];
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              isCrossChain
+                                  ? Padding(
+                                      padding: EdgeInsets.only(top: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Expanded(
+                                            child: TapTooltip(
+                                              message: dic['amount.exist.msg'],
+                                              child: Row(
+                                                children: [
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                        right: 4),
+                                                    child: Text(
+                                                        dic['cross.exist']),
+                                                  ),
+                                                  Icon(
+                                                    Icons.info,
+                                                    size: 16,
+                                                    color: Theme.of(context)
+                                                        .unselectedWidgetColor,
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                              flex: 0,
+                                              child: Text(
+                                                  '${Fmt.priceCeilBigInt(destExistDeposit, decimals, lengthMax: 6)} $symbol')),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(),
+                              isCrossChain
+                                  ? Padding(
+                                      padding: EdgeInsets.only(top: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  EdgeInsets.only(right: 4),
+                                              child: Text(dic['cross.fee']),
+                                            ),
+                                          ),
+                                          Text(
+                                              '${Fmt.priceCeilBigInt(destFee, decimals, lengthMax: 6)} $symbol'),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(),
+                              Padding(
+                                padding: EdgeInsets.only(top: 16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Expanded(
+                                      child: TapTooltip(
+                                        message: dic['amount.exist.msg'],
+                                        child: Row(
                                           children: [
-                                            Visibility(
-                                                visible: isCrossChain,
-                                                child: TextTag(
-                                                    dic['cross.chain'],
-                                                    margin: EdgeInsets.only(
-                                                        right: 8),
-                                                    color: Colors.red)),
+                                            Padding(
+                                              padding:
+                                                  EdgeInsets.only(right: 4),
+                                              child: Text(dic['amount.exist']),
+                                            ),
                                             Icon(
-                                              Icons.arrow_forward_ios,
-                                              size: 18,
-                                              color: colorGrey,
+                                              Icons.info,
+                                              size: 16,
+                                              color: Theme.of(context)
+                                                  .unselectedWidgetColor,
                                             )
                                           ],
-                                        )
-                                      ],
+                                        ),
+                                      ),
                                     ),
+                                    Text(
+                                        '${Fmt.priceCeilBigInt(existDeposit, decimals, lengthMax: 6)} $symbol'),
                                   ],
                                 ),
                               ),
-                              onTap: _onSelectChain,
-                            )),
-                        Form(
-                          key: _formKey,
-                          child: TextFormField(
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            decoration: InputDecoration(
-                              hintText: dic['amount.hint'],
-                              labelText:
-                                  '${dic['amount']} (${dic['balance']}: ${Fmt.priceFloorBigInt(
-                                available,
-                                decimals,
-                                lengthMax: 6,
-                              )})',
-                              suffix: GestureDetector(
-                                child: Text(dic['amount.max'],
-                                    style: TextStyle(
-                                        color: Theme.of(context).primaryColor)),
-                                onTap: () =>
-                                    _setMaxAmount(available, existAmount),
-                              ),
-                            ),
-                            inputFormatters: [
-                              UI.decimalInputFormatter(decimals)
-                            ],
-                            controller: _amountCtrl,
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            validator: (v) {
-                              if (v.isEmpty) {
-                                return dic['amount.error'];
-                              }
-                              final input = Fmt.tokenInt(v, decimals);
-                              final feeLeft = available -
-                                  input -
-                                  (_keepAlive ? existAmount : BigInt.zero);
-                              BigInt fee = BigInt.zero;
-                              if (feeLeft < Fmt.tokenInt('0.02', decimals) &&
-                                  _fee?.partialFee != null) {
-                                fee =
-                                    Fmt.balanceInt(_fee.partialFee.toString());
-                              }
-                              if (feeLeft - fee < BigInt.zero) {
-                                return dic['amount.low'];
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        Visibility(
-                            visible: isCrossChain,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                        padding: EdgeInsets.only(right: 40),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              dic['cross.exist'],
+                              _fee?.partialFee != null
+                                  ? Padding(
+                                      padding: EdgeInsets.only(top: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  EdgeInsets.only(right: 4),
+                                              child: Text(dic['amount.fee']),
                                             ),
-                                            Text(
-                                              dic['amount.exist.msg'],
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w200),
-                                            ),
-                                          ],
-                                        )),
-                                    // child: TapTooltip(
-                                    //   message: dic['amount.exist.msg'],
-                                    //   child: Row(
-                                    //     children: [
-                                    //       Padding(
-                                    //         padding: EdgeInsets.only(right: 4),
-                                    //         child: Text(dic['cross.exist']),
-                                    //       ),
-                                    //       Icon(
-                                    //         Icons.info,
-                                    //         size: 16,
-                                    //         color: Theme.of(context)
-                                    //             .unselectedWidgetColor,
-                                    //       )
-                                    //     ],
-                                    //   ),
-                                    // ),
-                                  ),
-                                  Expanded(
+                                          ),
+                                          Text(
+                                              '${Fmt.priceCeilBigInt(Fmt.balanceInt(_fee?.partialFee?.toString()), decimals, lengthMax: 6)} $symbol'),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(),
+                              Container(
+                                margin: EdgeInsets.only(top: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Expanded(
                                       flex: 0,
-                                      child: Text(
-                                          '${Fmt.priceCeilBigInt(destExistDeposit, decimals, lengthMax: 6)} $symbol')),
-                                ],
-                              ),
-                            )),
-                        Visibility(
-                            visible: isCrossChain,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(right: 4),
-                                      child: Text(
-                                        dic['cross.fee'],
+                                      child: Padding(
+                                        padding: EdgeInsets.only(right: 4),
+                                        child: Text(dic['transfer.alive']),
                                       ),
                                     ),
-                                  ),
-                                  Text(
-                                      '${Fmt.priceCeilBigInt(destFee, decimals, lengthMax: 6)} $symbol'),
-                                ],
+                                    TapTooltip(
+                                      message: dic['transfer.alive.msg'],
+                                      child: Icon(
+                                        Icons.info,
+                                        size: 16,
+                                        color: Theme.of(context)
+                                            .unselectedWidgetColor,
+                                      ),
+                                    ),
+                                    Expanded(child: Container(width: 2)),
+                                    CupertinoSwitch(
+                                      value: _keepAlive,
+                                      // account is not allow_death if it has
+                                      // locked/reserved balances
+                                      onChanged: notTransferable > BigInt.zero
+                                          ? null
+                                          : (res) {
+                                              setState(() {
+                                                _keepAlive = res;
+                                              });
+                                            },
+                                    )
+                                  ],
+                                ),
                               ),
-                            )),
-                        Padding(
-                          padding: EdgeInsets.only(top: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                    padding: EdgeInsets.only(right: 60),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          dic['amount.exist'],
-                                        ),
-                                        Text(
-                                          dic['amount.exist.msg'],
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w200),
-                                        ),
-                                      ],
-                                    )),
-                                // child: TapTooltip(
-                                //   message: dic['amount.exist.msg'],
-                                //   child: Row(
-                                //     children: [
-                                //       Padding(
-                                //         padding: EdgeInsets.only(right: 4),
-                                //         child: Text(dic['amount.exist']),
-                                //       ),
-                                //       Icon(
-                                //         Icons.info,
-                                //         size: 16,
-                                //         color: Theme.of(context)
-                                //             .unselectedWidgetColor,
-                                //       )
-                                //     ],
-                                //   ),
-                                // ),
-                              ),
-                              Text(
-                                  '${Fmt.priceCeilBigInt(existDeposit, decimals, lengthMax: 6)} $symbol'),
                             ],
                           ),
                         ),
-                        Visibility(
-                            visible: _fee?.partialFee != null,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(right: 4),
-                                      child: Text(
-                                        dic['amount.fee'],
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                      '${Fmt.priceCeilBigInt(Fmt.balanceInt((_fee?.partialFee?.toString() ?? "0")), decimals, lengthMax: 6)} $symbol'),
-                                ],
-                              ),
-                            )),
-                        Container(
-                          margin: EdgeInsets.only(top: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                    padding: EdgeInsets.only(right: 60),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          dic['transfer.alive'],
-                                        ),
-                                        Text(
-                                          dic['transfer.alive.msg'],
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w200),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                              // Expanded(
-                              //   flex: 0,
-                              //   child: Padding(
-                              //     padding: EdgeInsets.only(right: 4),
-                              //     child: Text(dic['transfer.alive']),
-                              //   ),
-                              // ),
-                              // TapTooltip(
-                              //   message: dic['transfer.alive.msg'],
-                              //   child: Icon(
-                              //     Icons.info,
-                              //     size: 16,
-                              //     color:
-                              //         Theme.of(context).unselectedWidgetColor,
-                              //   ),
-                              // ),
-                              // Expanded(child: Container(width: 2)),
-                              CupertinoSwitch(
-                                value: _keepAlive,
-                                // account is not allow_death if it has
-                                // locked/reserved balances
-                                onChanged: (res) {
-                                  if (notTransferable > BigInt.zero) {
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return CupertinoAlertDialog(
-                                          title: Text(dic['note']),
-                                          content: Text(dic['note.msg1']),
-                                          actions: <Widget>[
-                                            CupertinoButton(
-                                              child: Text(I18n.of(context)
-                                                  .getDic(i18n_full_dic_ui,
-                                                      'common')['cancel']),
-                                              onPressed: () =>
-                                                  Navigator.of(context).pop(),
-                                            ),
-                                            CupertinoButton(
-                                              child: Text(I18n.of(context)
-                                                  .getDic(i18n_full_dic_ui,
-                                                      'common')['ok']),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                                showCupertinoDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return CupertinoAlertDialog(
-                                                      title: Text(dic['note']),
-                                                      content: Text(
-                                                          dic['note.msg2']),
-                                                      actions: <Widget>[
-                                                        CupertinoButton(
-                                                          child: Text(I18n.of(
-                                                                  context)
-                                                              .getDic(
-                                                                  i18n_full_dic_ui,
-                                                                  'common')['ok']),
-                                                          onPressed: () =>
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  } else {
-                                    setState(() {
-                                      _keepAlive = res;
-                                    });
-                                  }
-                                },
-                              )
-                            ],
-                          ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        child: TxButton(
+                          text: dic['make'],
+                          getTxParams: _getTxParams,
+                          onFinish: (res) {
+                            if (res != null) {
+                              Navigator.of(context).pop(res);
+                            }
+                          },
                         ),
-                      ],
-                    ),
+                      )
+                    ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  child: TxButton(
-                    text: dic['make'],
-                    getTxParams: _getTxParams,
-                    onFinish: (res) {
-                      if (res != null) {
-                        Navigator.of(context).pop(res);
-                      }
-                    },
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
+              );
+            },
+          );
+        } else {
+          return Container(color: Theme.of(context).canvasColor);
+        }
       },
-    );
+    ));
   }
 }

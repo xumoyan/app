@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:app/app.dart';
-import 'package:app/common/consts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart';
@@ -15,18 +13,6 @@ class WalletApi {
   static const String _jsCodeStorageKey = 'js_service_';
   static const String _jsCodeStorageVersionKey = 'js_service_version_';
 
-  static Uri getUrl(String realmName, String path, {BuildTargets targets}) {
-    String url = "$realmName$path";
-    targets = targets ?? WalletApp.buildTarget;
-    if (targets == BuildTargets.dev) {
-      if (!path.endsWith(".json")) {
-        path = "$path.json";
-      }
-      url = "$_endpoint/devConfiguration$path";
-    }
-    return Uri.parse(url);
-  }
-
   static String getSnEndpoint(String relayChainName) {
     return 'https://$relayChainName.api.subscan.io/api/scan';
   }
@@ -34,7 +20,7 @@ class WalletApi {
   static Future<Map> getXcmEnabledConfig() async {
     try {
       Response res =
-          await get(getUrl(_configEndpoint, "/wallet/nativeTokenXCM.json"));
+          await get(Uri.parse('$_configEndpoint/wallet/nativeTokenXCM.json'));
       if (res == null) {
         return {};
       } else {
@@ -49,7 +35,7 @@ class WalletApi {
   static Future<Map> getDisabledCalls() async {
     try {
       Response res =
-          await get(getUrl(_configEndpoint, "/wallet/disabledCalls.json"));
+          await get(Uri.parse('$_configEndpoint/wallet/disabledCalls.json'));
       if (res == null) {
         return {};
       } else {
@@ -64,7 +50,7 @@ class WalletApi {
   static Future<Map> getLatestVersion() async {
     try {
       Response res =
-          await get(getUrl(_configEndpoint, "/wallet/versions.json"));
+          await get(Uri.parse('$_configEndpoint/wallet/versions.json'));
       if (res == null) {
         return null;
       } else {
@@ -79,7 +65,7 @@ class WalletApi {
   static Future<Map> fetchPolkadotJSVersion() async {
     try {
       Response res =
-          await get(getUrl(_configEndpoint, "/wallet/jsCodeVersions.json"));
+          await get(Uri.parse('$_configEndpoint/wallet/jsCodeVersions.json'));
       if (res == null) {
         return null;
       } else {
@@ -94,7 +80,7 @@ class WalletApi {
   static Future<String> fetchPolkadotJSCode(String networkName) async {
     try {
       Response res =
-          await get(getUrl(_configEndpoint, "/wallet/js/$networkName.js"));
+          await get(Uri.parse('$_configEndpoint/wallet/js/$networkName.js'));
       if (res == null || res.statusCode != 200) {
         return null;
       } else {
@@ -142,7 +128,7 @@ class WalletApi {
 
   static Future<List> getAnnouncements() async {
     try {
-      Response res = await get(getUrl(_endpoint, '/announce.json'));
+      Response res = await get(Uri.parse('$_endpoint/announce.json'));
       if (res == null) {
         return null;
       } else {
@@ -185,24 +171,9 @@ class WalletApi {
     }
   }
 
-  static Future<Map> getClaim(String address) async {
-    final url = '$_endpoint/acala/claim/claim?address=$address';
-    try {
-      Response res = await get(Uri.parse(url));
-      if (res == null) {
-        return null;
-      } else {
-        return jsonDecode(utf8.decode(res.bodyBytes));
-      }
-    } catch (err) {
-      print(err);
-      return null;
-    }
-  }
-
   static Future<Map> getAdBannerStatus() async {
     try {
-      final res = await get(getUrl(_endpoint, '/crowdloan/health'));
+      final res = await get(Uri.parse('$_endpoint/crowdloan/health'));
       if (res == null) {
         return null;
       } else {
@@ -298,12 +269,12 @@ class WalletApi {
       String referral,
       String signature,
       String endpoint,
-      String authToken,
       {bool isProxy = false}) async {
     final headers = {
       "Content-type": "application/json",
       "Accept": "*/*",
-      "Authorization": "Bearer $authToken"
+      "Authorization":
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoicG9sa2F3YWxsZXQiLCJpYXQiOjE2MzI5MDk1MTd9.iDMOCyRGAttGbgDeD14XLHlAo12VVTKRXdoET3urdZU"
     };
     final Map body = {
       "address": address,
@@ -332,10 +303,10 @@ class WalletApi {
     }
   }
 
-  static Future<Map> getPluginsConfig(BuildTargets targets) async {
+  static Future<Map> getPluginsConfig() async {
     try {
-      Response res = await get(
-          getUrl(_configEndpoint, '/wallet/plugins.json', targets: targets));
+      Response res =
+          await get(Uri.parse('$_configEndpoint/wallet/plugins.json'));
       if (res == null) {
         return null;
       } else {
@@ -349,22 +320,8 @@ class WalletApi {
 
   static Future<Map> getKarModulesConfig() async {
     try {
-      Response res = await get(getUrl(_configEndpoint, '/config/modules.json'));
-      if (res == null) {
-        return null;
-      } else {
-        return jsonDecode(res.body) as Map;
-      }
-    } catch (err) {
-      print(err);
-      return null;
-    }
-  }
-
-  static Future<Map> getAcalaModulesConfig() async {
-    try {
       Response res =
-          await get(getUrl(_configEndpoint, '/config/modulesAcala.json'));
+          await get(Uri.parse('$_configEndpoint/config/modules.json'));
       if (res == null) {
         return null;
       } else {
@@ -376,10 +333,9 @@ class WalletApi {
     }
   }
 
-  static Future<Map> getCrowdLoansConfig({bool isKSM = true}) async {
+  static Future<Map> getKSMCrowdLoansConfig() async {
     try {
-      Response res = await get(getUrl(_configEndpoint,
-          isKSM ? '/wallet/paras.json' : '/wallet/parasDot.json'));
+      Response res = await get(Uri.parse('$_configEndpoint/wallet/paras.json'));
       if (res == null) {
         return null;
       } else {

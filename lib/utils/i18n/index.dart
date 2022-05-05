@@ -1,11 +1,11 @@
-import 'package:app/utils/i18n/en/account.dart';
-import 'package:app/utils/i18n/en/assets.dart';
-import 'package:app/utils/i18n/en/profile.dart';
-import 'package:app/utils/i18n/en/public.dart';
-import 'package:app/utils/i18n/zh/account.dart';
-import 'package:app/utils/i18n/zh/assets.dart';
-import 'package:app/utils/i18n/zh/profile.dart';
-import 'package:app/utils/i18n/zh/public.dart';
+import 'package:polka_module/utils/i18n/en/account.dart';
+import 'package:polka_module/utils/i18n/en/assets.dart';
+import 'package:polka_module/utils/i18n/en/profile.dart';
+import 'package:polka_module/utils/i18n/en/public.dart';
+import 'package:polka_module/utils/i18n/zh/account.dart';
+import 'package:polka_module/utils/i18n/zh/assets.dart';
+import 'package:polka_module/utils/i18n/zh/profile.dart';
+import 'package:polka_module/utils/i18n/zh/public.dart';
 
 const Map<String, Map<String, Map<String, String>>> i18n_full_dic_app = {
   'en': {

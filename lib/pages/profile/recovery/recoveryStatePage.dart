@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:app/pages/profile/recovery/initiateRecoveryPage.dart';
-import 'package:app/pages/profile/recovery/recoverySettingPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/profile/recovery/initiateRecoveryPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoverySettingPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/recoveryInfo.dart';
@@ -61,9 +61,7 @@ class _RecoveryStatePage extends State<RecoveryStatePage> {
       });
       final pubKeyAddressMap =
           await widget.service.plugin.sdk.api.account.encodeAddress(pubKeys);
-      // set pubKeyAddressMap so we can parse the pubKey from subscan tx.
-      widget.service.store.account.setPubKeyAddressMap(Map<String, Map>.from(
-          {'${widget.service.plugin.basic.ss58}': pubKeyAddressMap}));
+
       final addresses =
           pubKeys.map((e) => pubKeyAddressMap[e] as String).toList();
 

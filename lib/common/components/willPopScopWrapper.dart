@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
+import 'package:flutter_boost/flutter_boost.dart';
 
 class WillPopScopWrapper extends StatelessWidget {
   WillPopScopWrapper(this.child);
@@ -22,11 +23,11 @@ class WillPopScopWrapper extends StatelessWidget {
                   title: Text(dic['exit.confirm']),
                   actions: <Widget>[
                     CupertinoButton(
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => BoostNavigator.instance.pop(false),
                       child: Text(dic['cancel']),
                     ),
                     CupertinoButton(
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () => BoostNavigator.instance.pop(true),
                       /*Navigator.of(context).pop(true)*/
                       child: Text(dic['ok']),
                     ),

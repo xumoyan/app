@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:app/common/components/txList.dart';
-import 'package:app/pages/profile/recovery/vouchRecoveryPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/components/txList.dart';
+import 'package:polka_module/pages/profile/recovery/vouchRecoveryPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/txData.dart';
@@ -43,12 +43,7 @@ class _RecoveryStatePage extends State<RecoveryProofPage> {
       ls.forEach((i) {
         pubKeys.addAll(List.of(jsonDecode(i.params)).map((e) => e['value']));
       });
-
-      final pubKeyAddressMap =
-          await widget.service.plugin.sdk.api.account.encodeAddress(pubKeys);
-      widget.service.store.account.setPubKeyAddressMap(Map<String, Map>.from(
-          {'${widget.service.plugin.basic.ss58}': pubKeyAddressMap}));
-
+      widget.service.plugin.sdk.api.account.encodeAddress(pubKeys);
       setState(() {
         _txs = ls;
       });

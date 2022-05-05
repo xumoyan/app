@@ -1,6 +1,6 @@
-import 'package:app/pages/public/adPage.dart';
-import 'package:app/pages/public/karCrowdLoanPage.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/public/adPage.dart';
+import 'package:polka_module/pages/public/karCrowdLoanPage.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';

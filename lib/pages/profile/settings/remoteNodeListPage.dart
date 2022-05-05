@@ -1,5 +1,5 @@
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -28,10 +28,9 @@ class RemoteNodeListPage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Visibility(
-                  visible: isCurrent,
-                  child: Icon(Icons.check_circle,
-                      color: Colors.lightGreen, size: 18)),
+              isCurrent
+                  ? Icon(Icons.check_circle, color: Colors.lightGreen, size: 18)
+                  : Container(),
               Icon(Icons.arrow_forward_ios, size: 18)
             ],
           ),

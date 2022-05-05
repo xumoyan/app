@@ -1,4 +1,4 @@
-import 'package:app/store/types/transferData.dart';
+import 'package:polka_module/store/types/transferData.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mobx/mobx.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
@@ -19,6 +19,18 @@ abstract class _AssetsStore with Store {
   final String customAssetsStoreKey = 'assets_list';
 
   @observable
+  int cacheTxsTimestamp = 0;
+
+  @observable
+  bool isTxsLoading = true;
+
+  @observable
+  bool submitting = false;
+
+  @observable
+  int txsCount = 0;
+
+  @observable
   ObservableList<TransferData> txs = ObservableList<TransferData>();
 
   @observable
@@ -26,6 +38,11 @@ abstract class _AssetsStore with Store {
 
   @observable
   Map<String, bool> customAssets = {};
+
+  @action
+  void setTxsLoading(bool isLoading) {
+    isTxsLoading = isLoading;
+  }
 
   @action
   Future<void> clearTxs() async {
@@ -39,6 +56,8 @@ abstract class _AssetsStore with Store {
     String pluginName, {
     bool shouldCache = false,
   }) async {
+    txsCount = res['count'];
+
     List ls = res['transfers'];
     if (ls == null) return;
 
@@ -50,6 +69,11 @@ abstract class _AssetsStore with Store {
     if (shouldCache) {
       storage.write('${pluginName}_$acc', ls);
     }
+  }
+
+  @action
+  void setSubmitting(bool isSubmitting) {
+    submitting = isSubmitting;
   }
 
   @action

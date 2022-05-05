@@ -1,16 +1,16 @@
-import 'package:app/common/consts.dart';
-import 'package:app/pages/profile/aboutPage.dart';
-import 'package:app/pages/profile/acalaCrowdLoan/acaCrowdLoanBanner.dart';
-import 'package:app/pages/profile/account/accountManagePage.dart';
-import 'package:app/pages/profile/contacts/contactPage.dart';
-import 'package:app/pages/profile/contacts/contactsPage.dart';
-import 'package:app/pages/profile/crowdLoan/crowdLoanBanner.dart';
-import 'package:app/pages/profile/recovery/recoveryProofPage.dart';
-import 'package:app/pages/profile/recovery/recoverySettingPage.dart';
-import 'package:app/pages/profile/recovery/recoveryStatePage.dart';
-import 'package:app/pages/profile/settings/settingsPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/pages/profile/aboutPage.dart';
+import 'package:polka_module/pages/profile/acalaCrowdLoan/acaCrowdLoanBanner.dart';
+import 'package:polka_module/pages/profile/account/accountManagePage.dart';
+import 'package:polka_module/pages/profile/contacts/contactPage.dart';
+import 'package:polka_module/pages/profile/contacts/contactsPage.dart';
+import 'package:polka_module/pages/profile/crowdLoan/crowdLoanBanner.dart';
+import 'package:polka_module/pages/profile/recovery/recoveryProofPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoverySettingPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoveryStatePage.dart';
+import 'package:polka_module/pages/profile/settings/settingsPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/networkParams.dart';
@@ -81,8 +81,11 @@ class _ProfilePageState extends State<ProfilePage> {
     final acc = widget.service.keyring.current;
     final primaryColor = Theme.of(context).primaryColor;
 
-    final acaCrowdLoanVisible =
-        (widget.service.store.settings.adBannerState['visibleAca'] ?? false);
+    final acaCrowdLoanVisible = widget.service.buildTarget == BuildTargets.dev;
+    // todo: activate the banner
+    // final acaCrowdLoanVisible = widget.service.buildTarget == BuildTargets.dev
+    //     ? true
+    //     : (widget.service.store.settings.adBannerState['visibleAca'] ?? false);
 
     return Scaffold(
       appBar: AppBar(
@@ -90,8 +93,8 @@ class _ProfilePageState extends State<ProfilePage> {
         centerTitle: true,
         elevation: 0.0,
       ),
-      body: Column(
-        children: [
+      body: ListView(
+        children: <Widget>[
           Container(
             color: primaryColor,
             padding: EdgeInsets.only(bottom: 16),
@@ -105,92 +108,82 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          Expanded(
-              child: ListView(
-            children: <Widget>[
-              Visibility(
-                  visible: widget.connectedNode != null &&
-                      !(acc.observation ?? false),
-                  child:
-                      widget.service.plugin.basic.name == relay_chain_name_ksm
-                          ? KarCrowdLoanBanner()
-                          : Visibility(
-                              visible: widget.service.plugin.basic.name ==
-                                      relay_chain_name_dot &&
-                                  acaCrowdLoanVisible,
-                              child: ACACrowdLoanBanner(
-                                  widget.service, (network) => null))),
-              Container(
-                padding: EdgeInsets.all(24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    RoundedButton(
-                      text: dic['account'],
-                      onPressed: () async {
-                        if (acc.observation ?? false) {
-                          await Navigator.pushNamed(context, ContactPage.route,
-                              arguments: widget.service.keyring.current);
-                        } else {
-                          await Navigator.pushNamed(
-                              context, AccountManagePage.route);
-                        }
-                        setState(() {
-                          _currentAccount = widget.service.keyring.current;
-                        });
-                      },
-                    )
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 32,
-                  child: Icon(Icons.people_outline, color: grey, size: 22),
-                ),
-                title: Text(dic['contact']),
-                trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                onTap: () async {
-                  await Navigator.of(context).pushNamed(ContactsPage.route);
-                  setState(() {
-                    _currentAccount = widget.service.keyring.current;
-                  });
-                },
-              ),
-              Visibility(
-                  visible: widget.service.plugin.recoveryEnabled,
-                  child: ListTile(
-                    leading: Container(
-                      width: 32,
-                      child: Icon(Icons.security, color: grey, size: 22),
-                    ),
-                    title: Text(dic['recovery']),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: widget.connectedNode == null
-                        ? null
-                        : () => _showRecoveryMenu(context),
-                  )),
-              ListTile(
-                leading: Container(
-                  width: 32,
-                  child: Icon(Icons.settings, color: grey, size: 22),
-                ),
-                title: Text(dic['setting']),
-                trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                onTap: () =>
-                    Navigator.of(context).pushNamed(SettingsPage.route),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 32,
-                  child: Icon(Icons.info_outline, color: grey, size: 22),
-                ),
-                title: Text(dic['about']),
-                trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                onTap: () => Navigator.of(context).pushNamed(AboutPage.route),
-              ),
-            ],
-          ))
+          widget.connectedNode != null
+              ? widget.service.plugin.basic.name == relay_chain_name_ksm
+                  ? KarCrowdLoanBanner()
+                  : widget.service.plugin.basic.name == relay_chain_name_dot &&
+                          acaCrowdLoanVisible
+                      ? ACACrowdLoanBanner(widget.service, (network) => null)
+                      : Container()
+              : Container(),
+          Container(
+            padding: EdgeInsets.all(24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RoundedButton(
+                  text: dic['account'],
+                  onPressed: () async {
+                    if (acc.observation ?? false) {
+                      await Navigator.pushNamed(context, ContactPage.route,
+                          arguments: widget.service.keyring.current);
+                    } else {
+                      await Navigator.pushNamed(
+                          context, AccountManagePage.route);
+                    }
+                    setState(() {
+                      _currentAccount = widget.service.keyring.current;
+                    });
+                  },
+                )
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Container(
+              width: 32,
+              child: Icon(Icons.people_outline, color: grey, size: 22),
+            ),
+            title: Text(dic['contact']),
+            trailing: Icon(Icons.arrow_forward_ios, size: 18),
+            onTap: () async {
+              await Navigator.of(context).pushNamed(ContactsPage.route);
+              setState(() {
+                _currentAccount = widget.service.keyring.current;
+              });
+            },
+          ),
+          widget.service.plugin.recoveryEnabled
+              ? ListTile(
+                  leading: Container(
+                    width: 32,
+                    child: Icon(Icons.security, color: grey, size: 22),
+                  ),
+                  title: Text(dic['recovery']),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 18),
+                  onTap: widget.connectedNode == null
+                      ? null
+                      : () => _showRecoveryMenu(context),
+                )
+              : Container(),
+          ListTile(
+            leading: Container(
+              width: 32,
+              child: Icon(Icons.settings, color: grey, size: 22),
+            ),
+            title: Text(dic['setting']),
+            trailing: Icon(Icons.arrow_forward_ios, size: 18),
+            onTap: () => Navigator.of(context).pushNamed(SettingsPage.route),
+          ),
+          ListTile(
+            leading: Container(
+              width: 32,
+              child: Icon(Icons.info_outline, color: grey, size: 22),
+            ),
+            title: Text(dic['about']),
+            trailing: Icon(Icons.arrow_forward_ios, size: 18),
+            onTap: () => Navigator.of(context).pushNamed(AboutPage.route),
+          ),
         ],
       ),
     );

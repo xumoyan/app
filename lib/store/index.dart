@@ -1,7 +1,7 @@
-import 'package:app/store/account.dart';
-import 'package:app/store/assets.dart';
-import 'package:app/store/parachain.dart';
-import 'package:app/store/settings.dart';
+import 'package:polka_module/store/account.dart';
+import 'package:polka_module/store/assets.dart';
+import 'package:polka_module/store/parachain.dart';
+import 'package:polka_module/store/settings.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mobx/mobx.dart';
 
@@ -19,8 +19,8 @@ class AppStore {
   Future<void> init() async {
     settings = SettingsStore(storage);
     await settings.init();
-    account = AccountStore();
+    account = AccountStore(storage);
     assets = AssetsStore(storage);
-    parachain = ParachainStore();
+    parachain = ParachainStore(storage);
   }
 }

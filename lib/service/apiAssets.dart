@@ -1,5 +1,5 @@
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
 
 class ApiAssets {
   ApiAssets(this.apiRoot);
@@ -7,6 +7,8 @@ class ApiAssets {
   final AppService apiRoot;
 
   Future<Map> updateTxs(int page) async {
+    apiRoot.store.assets.setTxsLoading(true);
+
     final acc = apiRoot.keyring.current;
     Map res = await apiRoot.subScan.fetchTransfersAsync(
       acc.address,
@@ -25,6 +27,7 @@ class ApiAssets {
       shouldCache: page == 0,
     );
 
+    apiRoot.store.assets.setTxsLoading(false);
     return res;
   }
 

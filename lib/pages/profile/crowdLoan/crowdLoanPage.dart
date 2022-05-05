@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:app/common/consts.dart';
-import 'package:app/pages/profile/crowdLoan/auctionPanel.dart';
-import 'package:app/pages/profile/crowdLoan/contributePage.dart';
-import 'package:app/pages/profile/crowdLoan/crowdLoanList.dart';
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
+import 'package:polka_module/pages/profile/crowdLoan/auctionPanel.dart';
+import 'package:polka_module/pages/profile/crowdLoan/contributePage.dart';
+import 'package:polka_module/pages/profile/crowdLoan/crowdLoanList.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -42,8 +41,7 @@ class _CrowdLoanPageState extends State<CrowdLoanPage> {
 
     final res = await Future.wait([
       widget.service.plugin.sdk.api.parachain.queryAuctionWithWinners(),
-      WalletApi.getCrowdLoansConfig(
-          isKSM: widget.service.plugin.basic.name == relay_chain_name_ksm),
+      WalletApi.getKSMCrowdLoansConfig(),
     ]);
 
     if (mounted && res[0] != null && res[1] != null) {
@@ -67,9 +65,9 @@ class _CrowdLoanPageState extends State<CrowdLoanPage> {
   }
 
   Future<void> _getUserContributions(List<FundData> funds) async {
-    final data = await widget.service.plugin.sdk.api.parachain
-        .queryUserContributions(funds.map((e) => e.paraId).toList(),
-            widget.service.keyring.current.pubKey);
+    final data = await Future.wait(funds.map((e) =>
+        widget.service.plugin.sdk.api.parachain.queryUserContributions(
+            [e.paraId], widget.service.keyring.current.pubKey)));
 
     if (mounted && data != null) {
       final res = {};

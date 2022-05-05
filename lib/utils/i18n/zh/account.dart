@@ -15,7 +15,7 @@ const Map<String, String> zhAccount = {
   'create.warn2': '获得助记词等于拥有钱包资产所有权',
   'create.warn3': '备份助记词',
   'create.warn4': '使用纸和笔正确抄写助记词',
-  'create.warn5': '如果你的手机丢失、被盗、损坏，助记词可以用来恢复你的账户',
+  'create.warn5': '如果你的手机丢失、被盗、损坏，助记词将可以恢复你的资产',
   'create.warn6': '离线保存',
   'create.warn7': '妥善保管至隔离网络的安全地方',
   'create.warn8': '请勿将助记词在联网环境下分享和储存，比如邮件、相册、社交应用等',
@@ -75,6 +75,4 @@ const Map<String, String> zhAccount = {
   'plugin.note': '功能插件由 ',
   'plugin.team': ' 团队维护。',
   'plugin.disable': '该插件与当前 App 版本不兼容，请等待插件修复。',
-  'bad.warn': '警告!!!',
-  'bad.warn.info': '是一个助记词为【null】的公共账户，请将其删除并创建新的账户使用.',
 };

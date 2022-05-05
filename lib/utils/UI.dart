@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:app/common/consts.dart';
-import 'package:app/service/walletApi.dart';
-import 'package:app/utils/Utils.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -75,11 +74,10 @@ class AppUI {
     final int versionCodeMin = versions[platform]['version-code-min'];
 
     bool needUpdate = false;
-    if ((autoCheck ? latestCode : latestCodeBeta) >
-        await Utils.getBuildNumber()) {
+    if ((autoCheck ? latestCode : latestCodeBeta) > app_beta_version_code) {
       // new version found
       if (Platform.isAndroid && buildTarget == BuildTargets.playStore) {
-        needUpdate = (latestCodeStore) > await Utils.getBuildNumber();
+        needUpdate = (latestCodeStore) > app_beta_version_code;
         if (!needUpdate && autoCheck) return;
       } else {
         needUpdate = true;
@@ -102,24 +100,23 @@ class AppUI {
                 child:
                     Text(needUpdate ? dic['update.up'] : dic['update.latest']),
               ),
-              Visibility(
-                  visible: needUpdate,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: versionInfo
-                        .map((e) => Text('- $e', textAlign: TextAlign.left))
-                        .toList(),
-                  ))
+              needUpdate
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: versionInfo
+                          .map((e) => Text('- $e', textAlign: TextAlign.left))
+                          .toList(),
+                    )
+                  : Container()
             ],
           ),
           actions: <Widget>[
             CupertinoButton(
               child: Text(I18n.of(context)
                   .getDic(i18n_full_dic_ui, 'common')['cancel']),
-              onPressed: () async {
+              onPressed: () {
                 Navigator.of(context).pop();
-                if (needUpdate &&
-                    versionCodeMin > await Utils.getBuildNumber()) {
+                if (needUpdate && versionCodeMin > app_beta_version_code) {
                   exit(0);
                 }
               },

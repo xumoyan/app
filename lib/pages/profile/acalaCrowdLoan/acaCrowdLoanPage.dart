@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:app/common/components/jumpToLink.dart';
-import 'package:app/common/consts.dart';
-import 'package:app/pages/profile/acalaCrowdLoan/acaCrowdLoanFormPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/components/jumpToLink.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/pages/profile/acalaCrowdLoan/acaCrowdLoanFormPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,7 +18,6 @@ import 'package:polkawallet_ui/components/roundedButton.dart';
 import 'package:polkawallet_ui/pages/accountListPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
-import 'package:polkawallet_ui/utils/index.dart';
 
 const acaThemeColor = MaterialColor(
   0xFF7E74FA,
@@ -51,15 +50,12 @@ class AcaCrowdLoanPage extends StatefulWidget {
   static BigInt contributeAmountMaxDivider = BigInt.from(1500000000000000000);
   static double rewardAmountMax = 150;
 
-  static String typeProxy = 'TRANSFER';
-  static String typeDirect = 'CONTRIBUTION';
-
   @override
   _AcaCrowdLoanPageState createState() => _AcaCrowdLoanPageState();
 }
 
 class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
-  int _tab = 1;
+  int _tab = 0;
   int _bestNumber = 0;
   Map _fundInfo;
 
@@ -68,14 +64,12 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
   bool _submitting = false;
 
   bool _accepted = false;
-  bool _acceptedDirect = false;
 
   Map _statement;
   Map _promotion;
   bool _signed = false;
 
   List _contributions = [];
-  bool _hasRef = false;
   Timer _txQueryTimer;
   bool _txQuerying = true;
 
@@ -130,7 +124,6 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
           'contributionAmount': tx['args'][1],
           'timestamp': tx['timestamp'],
           'eventId': tx['hash'],
-          'type': tx['type'],
         }
       ];
       res.addAll(txs);
@@ -163,15 +156,13 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
         _txQuerying = true;
       });
     }
-    _getAccountRef();
-
     final endpoint = widget.service.store.settings.adBannerState['endpoint'];
     final res =
         await WalletApi.getKarCrowdLoanHistory(_account.address, endpoint);
     if (res != null && mounted) {
-      // final txs = _mergeLocalTxData(res.reversed.toList());
+      final txs = _mergeLocalTxData(res.reversed.toList());
       setState(() {
-        _contributions = res;
+        _contributions = txs;
         _txQuerying = false;
       });
     }
@@ -203,17 +194,6 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
     }
   }
 
-  Future<void> _getAccountRef() async {
-    final endpoint = widget.service.store.settings.adBannerState['endpoint'];
-    final res = await WalletApi.verifyKarReferralCode(
-        widget.service.keyring.current.pubKey, endpoint);
-    if (res != null && mounted) {
-      setState(() {
-        _hasRef = res['result'] ?? false;
-      });
-    }
-  }
-
   Future<void> _selectAccount() async {
     final res = await Navigator.of(context).pushNamed(AccountListPage.route,
         arguments: AccountListPageParams(
@@ -234,10 +214,7 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
       setState(() {
         _account = acc;
         _accepted = false;
-        _acceptedDirect = false;
         _signed = signed != null;
-        _contributions = [];
-        _hasRef = false;
       });
 
       _getCrowdLoanHistory();
@@ -285,34 +262,12 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
         arguments: AcaCrowdLoanPageParams(
             _account,
             _statement,
-            _tab == 1 ? AcaPloType.proxy : AcaPloType.direct,
+            _tab == 0 ? AcaPloType.proxy : AcaPloType.direct,
             _promotion,
             _fundInfo));
     if (res != null) {
       _getCrowdLoanInfo();
     }
-  }
-
-  void _showReferral() async {
-    showCupertinoDialog(
-        context: context,
-        builder: (_) {
-          return CupertinoAlertDialog(
-            title: Text(I18n.of(context)
-                .getDic(i18n_full_dic_app, 'public')['auction.referral.my']),
-            content: Text(widget.service.keyring.current.pubKey),
-            actions: [
-              CupertinoButton(
-                  child: Text(I18n.of(context)
-                      .getDic(i18n_full_dic_ui, 'common')['copy']),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    UI.copyAndNotify(
-                        context, widget.service.keyring.current.pubKey);
-                  })
-            ],
-          );
-        });
   }
 
   @override
@@ -321,8 +276,10 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final acc = widget.service.keyring.current;
-      final signed = widget.service.store.storage
-          .read('$aca_statement_store_key${acc.pubKey}');
+      final signed = widget.service.buildTarget == BuildTargets.dev
+          ? null
+          : widget.service.store.storage
+              .read('$aca_statement_store_key${acc.pubKey}');
 
       setState(() {
         _account = widget.service.keyring.current;
@@ -359,21 +316,15 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
     final raised = _fundInfo != null
         ? BigInt.parse(_fundInfo['raised'].toString())
         : BigInt.zero;
-    double ratioAcaMax = raised > AcaCrowdLoanPage.contributeAmountMax
-        ? AcaCrowdLoanPage.contributeAmountMaxDivider / raised
+    final double ratioAcaMax = raised > AcaCrowdLoanPage.contributeAmountMax
+        ? raised / AcaCrowdLoanPage.contributeAmountMaxDivider
         : AcaCrowdLoanPage.rewardAmountMax;
-    if (ratioAcaMax < 3) {
-      ratioAcaMax = 3;
-    }
-
-    final isProxy = _tab == 1;
 
     final contributions = _contributions.toList();
-    if (isProxy) {
-      contributions
-          .removeWhere((e) => e['type'] == AcaCrowdLoanPage.typeDirect);
+    if (_tab == 0) {
+      contributions.removeWhere((e) => e['type'] == 'CONTRIBUTION');
     } else {
-      contributions.removeWhere((e) => e['type'] == AcaCrowdLoanPage.typeProxy);
+      contributions.removeWhere((e) => e['type'] == 'TRANSFER');
     }
     return Scaffold(
       body: AcaPloPageLayout(
@@ -401,25 +352,9 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                  child: Text(
-                                dic['auction.address'],
-                                style: labelStyle,
-                              )),
-                              Visibility(
-                                visible: _hasRef,
-                                child: GestureDetector(
-                                  child: Text(
-                                    dic['auction.referral.my'],
-                                    style: TextStyle(
-                                        fontSize: 14, color: acaThemeColor),
-                                  ),
-                                  onTap: _showReferral,
-                                ),
-                              )
-                            ],
+                          Text(
+                            dic['auction.address'],
+                            style: labelStyle,
                           ),
                           Padding(
                             padding: EdgeInsets.only(top: 20.h, bottom: 48.h),
@@ -433,266 +368,239 @@ class _AcaCrowdLoanPageState extends State<AcaCrowdLoanPage> {
                               margin: EdgeInsets.zero,
                             ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(bottom: 8),
-                                child: Row(
+                          (_tab == 1 && !_signed) ||
+                                  (_tab == 0 && contributions.length == 0)
+                              ? Column(
                                   children: [
-                                    Text(dic['auction.txs'], style: labelStyle),
-                                    Expanded(child: Container(width: 4)),
-                                    GestureDetector(
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.refresh,
-                                            size: 20,
-                                            color: acaThemeColor,
-                                          ),
-                                          Text(
-                                            dic['auction.refresh'],
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: acaThemeColor),
-                                          )
-                                        ],
-                                      ),
-                                      onTap: _getCrowdLoanHistory,
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
-                                  border: Border.all(
-                                      width: 4.w, color: acaThemeColor),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Visibility(
-                                        visible: _txQuerying,
-                                        child: CupertinoActivityIndicator()),
-                                    Visibility(
-                                        visible: contributions.length == 0,
-                                        child: Container(
-                                          padding: EdgeInsets.only(
-                                              top: 4, bottom: 4),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                I18n.of(context).getDic(
-                                                    i18n_full_dic_ui,
-                                                    'common')['list.empty'],
-                                                style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Theme.of(context)
-                                                        .unselectedWidgetColor),
-                                              )
-                                            ],
-                                          ),
-                                        )),
-                                    ...contributions.map((e) {
-                                      final karAmountStyle = TextStyle(
-                                          color: Colors.black87, fontSize: 12);
-                                      final contributeAmount = Fmt.balance(
-                                          e['contributionAmount'], decimals);
-                                      List<Widget> acaAmount = [
-                                        Text(
-                                          dic['auction.tx.confirming'],
-                                          style: karAmountStyle,
-                                        )
-                                      ];
-                                      if (e['blockHash'] != null) {
-                                        final acaAmountInt =
-                                            Fmt.balanceInt(e['baseBonus']);
-                                        final refereeBonus =
-                                            Fmt.balanceInt(e['refereeBonus']);
-                                        final karContributionBonus =
-                                            Fmt.balanceInt(
-                                                e['karuraContributorBonus']);
-                                        final acaExtraBonus = e['promotion'] !=
-                                                null
-                                            ? Fmt.balanceInt(
-                                                e['promotion']['acaExtraBonus'])
-                                            : BigInt.zero;
-                                        final karAmountMin = Fmt.bigIntToDouble(
-                                            acaAmountInt +
-                                                refereeBonus +
-                                                karContributionBonus +
-                                                acaExtraBonus,
-                                            aca_token_decimal);
-                                        final karAmountMax =
-                                            karAmountMin * ratioAcaMax / 3;
-                                        acaAmount = [
-                                          Text(
-                                            '≈ ${Fmt.priceFloor(karAmountMin)} - ${Fmt.priceFloor(karAmountMax)} ACA',
-                                            style: karAmountStyle,
-                                          )
-                                        ];
-                                      }
-                                      return Container(
-                                        margin:
-                                            EdgeInsets.only(top: 8, bottom: 8),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      '$contributeAmount DOT',
-                                                      style: TextStyle(
-                                                          color: titleColor,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                    Visibility(
-                                                        visible: isProxy,
-                                                        child: Text(
-                                                            '(= $contributeAmount lcDOT)',
-                                                            style:
-                                                                karAmountStyle))
-                                                  ],
-                                                ),
-                                                Text(
-                                                    Fmt.dateTime(DateTime
-                                                        .fromMillisecondsSinceEpoch(
-                                                            e['timestamp'])),
-                                                    style: TextStyle(
-                                                        color: grayColor,
-                                                        fontSize: 13))
-                                              ],
-                                            ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                ...acaAmount,
-                                                JumpToLink(
-                                                  e['blockHash'] == null
-                                                      ? 'https://polkadot.subscan.io/extrinsic/${e['eventId']}'
-                                                      : 'https://polkadot.subscan.io/account/${_account.address}',
-                                                  text: 'Subscan',
-                                                  color: acaThemeColor,
-                                                )
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList()
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                          Visibility(
-                            visible: (!isProxy && !_signed) ||
-                                (isProxy && contributions.length == 0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Theme(
-                                      child: SizedBox(
-                                        height: 48,
-                                        width: 32,
-                                        child: Padding(
-                                          padding: EdgeInsets.only(right: 8),
-                                          child: Checkbox(
-                                            value: isProxy
-                                                ? _accepted
-                                                : _acceptedDirect,
-                                            onChanged: (v) {
-                                              setState(() {
-                                                if (isProxy) {
-                                                  _accepted = v;
-                                                } else {
-                                                  _acceptedDirect = v;
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      data: ThemeData(
-                                        primarySwatch: acaThemeColor,
-                                        unselectedWidgetColor:
-                                            acaThemeColor, // Your color
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          dic['auction.read'],
-                                          style: TextStyle(color: titleColor),
-                                        ),
-                                        Row(
-                                          children: [
-                                            JumpToLink(
-                                              'https://acala.network/terms',
-                                              text: '${dic['auction.term.0']}',
-                                              color: acaThemeColor,
+                                        Theme(
+                                          child: SizedBox(
+                                            height: 48,
+                                            width: 32,
+                                            child: Padding(
+                                              padding:
+                                                  EdgeInsets.only(right: 8),
+                                              child: Checkbox(
+                                                value: _accepted,
+                                                onChanged: (v) {
+                                                  setState(() {
+                                                    _accepted = v;
+                                                  });
+                                                },
+                                              ),
                                             ),
+                                          ),
+                                          data: ThemeData(
+                                            primarySwatch: acaThemeColor,
+                                            unselectedWidgetColor:
+                                                acaThemeColor, // Your color
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
                                             Text(
-                                              ' & ',
+                                              dic['auction.read'],
                                               style:
                                                   TextStyle(color: titleColor),
                                             ),
-                                            JumpToLink(
-                                              'https://acala.network/privacy',
-                                              text: ' ${dic['auction.term.2']}',
-                                              color: acaThemeColor,
+                                            Row(
+                                              children: [
+                                                JumpToLink(
+                                                  'https://acala.network/terms',
+                                                  text:
+                                                      '${dic['auction.term.0']}',
+                                                  color: acaThemeColor,
+                                                ),
+                                                Text(
+                                                  ' & ',
+                                                  style: TextStyle(
+                                                      color: titleColor),
+                                                ),
+                                                JumpToLink(
+                                                  'https://acala.network/privacy',
+                                                  text:
+                                                      ' ${dic['auction.term.2']}',
+                                                  color: acaThemeColor,
+                                                )
+                                              ],
                                             )
                                           ],
                                         )
                                       ],
-                                    )
+                                    ),
                                   ],
-                                ),
-                              ],
-                            ),
-                          ),
+                                )
+                              : _txQuerying
+                                  ? CupertinoActivityIndicator()
+                                  : contributions.length > 0
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 8),
+                                              child: Text(dic['auction.txs'],
+                                                  style: labelStyle),
+                                            ),
+                                            Container(
+                                              padding: EdgeInsets.fromLTRB(
+                                                  16, 8, 16, 8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.transparent,
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(8)),
+                                                border: Border.all(
+                                                    width: 4.w,
+                                                    color: acaThemeColor),
+                                              ),
+                                              child: Column(
+                                                children:
+                                                    contributions.map((e) {
+                                                  final karAmountStyle =
+                                                      TextStyle(
+                                                          color: Colors.black87,
+                                                          fontSize: 12);
+                                                  final contributeAmount =
+                                                      Fmt.balance(
+                                                          e['contributionAmount'],
+                                                          decimals);
+                                                  List<Widget> acaAmount = [
+                                                    Text(
+                                                      dic['auction.tx.confirming'],
+                                                      style: karAmountStyle,
+                                                    )
+                                                  ];
+                                                  if (e['blockHash'] != null) {
+                                                    final acaAmountInt =
+                                                        Fmt.balanceInt(
+                                                            e['baseBonus']);
+                                                    final refereeBonus =
+                                                        Fmt.balanceInt(
+                                                            e['refereeBonus']);
+                                                    final karContributionBonus =
+                                                        Fmt.balanceInt(e[
+                                                            'karuraContributorBonus']);
+                                                    final acaExtraBonus = e[
+                                                                'promotion'] !=
+                                                            null
+                                                        ? Fmt.balanceInt(e[
+                                                                'promotion']
+                                                            ['acaExtraBonus'])
+                                                        : BigInt.zero;
+                                                    final karAmountMin =
+                                                        Fmt.bigIntToDouble(
+                                                            acaAmountInt +
+                                                                refereeBonus +
+                                                                karContributionBonus +
+                                                                acaExtraBonus,
+                                                            aca_token_decimal);
+                                                    final karAmountMax =
+                                                        karAmountMin *
+                                                            ratioAcaMax /
+                                                            3;
+                                                    acaAmount = [
+                                                      Text(
+                                                        '≈ ${Fmt.priceFloor(karAmountMin)} - ${Fmt.priceFloor(karAmountMax)} ACA',
+                                                        style: karAmountStyle,
+                                                      )
+                                                    ];
+                                                  }
+                                                  return Container(
+                                                    margin: EdgeInsets.only(
+                                                        top: 8, bottom: 8),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  '$contributeAmount DOT',
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          titleColor,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                ),
+                                                                _tab == 0
+                                                                    ? Text(
+                                                                        '(= $contributeAmount lcDOT)',
+                                                                        style:
+                                                                            karAmountStyle)
+                                                                    : Container()
+                                                              ],
+                                                            ),
+                                                            Text(
+                                                                Fmt.dateTime(DateTime
+                                                                    .fromMillisecondsSinceEpoch(e[
+                                                                        'timestamp'])),
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        grayColor,
+                                                                    fontSize:
+                                                                        13))
+                                                          ],
+                                                        ),
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            ...acaAmount,
+                                                            JumpToLink(
+                                                              e['blockHash'] ==
+                                                                      null
+                                                                  ? 'https://kusama.subscan.io/extrinsic/${e['eventId']}'
+                                                                  : 'https://kusama.subscan.io/account/${_account.address}',
+                                                              text: 'Subscan',
+                                                              color:
+                                                                  acaThemeColor,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                      : Container(),
                           Container(
                             margin: EdgeInsets.only(top: 16, bottom: 32),
-                            child: isProxy
+                            child: _signed || _tab == 0
                                 ? RoundedButton(
                                     text: dic['auction.contribute'],
                                     color: acaThemeColor,
                                     borderRadius: 8,
-                                    onPressed:
-                                        _accepted || contributions.length > 0
-                                            ? _goToContribute
-                                            : () => null,
+                                    onPressed: _accepted
+                                        ? _goToContribute
+                                        : () => null,
                                   )
                                 : RoundedButton(
                                     icon: _submitting
                                         ? CupertinoActivityIndicator()
                                         : null,
-                                    text: _signed
-                                        ? dic['auction.contribute']
-                                        : dic['auction.accept'],
+                                    text: dic['auction.accept'],
                                     color: acaThemeColor,
                                     borderRadius: 8,
-                                    onPressed: _signed
-                                        ? _goToContribute
-                                        : _acceptedDirect && !_submitting
-                                            ? _acceptAndSign
-                                            : () => null,
+                                    onPressed: _accepted && !_submitting
+                                        ? _acceptAndSign
+                                        : () => null,
                                   ),
                           )
                         ],
@@ -711,40 +619,15 @@ class _PLOTabs extends StatelessWidget {
 
   void _showProxyInfo(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'public');
-    final fontStyle = TextStyle(fontSize: 14.0, color: Colors.black);
     showCupertinoDialog(
       context: context,
       builder: (_) => CupertinoAlertDialog(
-        content: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: RichText(
-                text: TextSpan(style: fontStyle, children: [
-                  TextSpan(
-                      text: dic['auction.direct'],
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextSpan(text: dic['auction.direct.info']),
-                ]),
-              ),
-            ),
-            RichText(
-              text: TextSpan(style: fontStyle, children: [
-                TextSpan(
-                    text: dic['auction.proxy'],
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                TextSpan(text: dic['auction.proxy.info']),
-              ]),
-            ),
-          ],
+        title: Text(dic['auction.proxy.title']),
+        content: _InfoPanelsInDialog(
+          closeDialog: () {
+            Navigator.of(context).pop();
+          },
         ),
-        actions: [
-          CupertinoButton(
-            child:
-                Text(I18n.of(context).getDic(i18n_full_dic_ui, 'common')['ok']),
-            onPressed: () => Navigator.of(context).pop(),
-          )
-        ],
       ),
     );
   }
@@ -769,7 +652,7 @@ class _PLOTabs extends StatelessWidget {
                     : Theme.of(context).cardColor,
               ),
               child: Text(
-                dic['auction.direct'],
+                dic['auction.proxy'],
                 style: TextStyle(
                     color: activeTab == 0
                         ? Theme.of(context).cardColor
@@ -791,7 +674,7 @@ class _PLOTabs extends StatelessWidget {
                     : Theme.of(context).cardColor,
               ),
               child: Text(
-                dic['auction.proxy'],
+                dic['auction.direct'],
                 style: TextStyle(
                     color: activeTab == 1
                         ? Theme.of(context).cardColor
@@ -817,6 +700,68 @@ class _PLOTabs extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class _InfoPanelsInDialog extends StatefulWidget {
+  _InfoPanelsInDialog({this.closeDialog});
+  final Function closeDialog;
+  @override
+  _InfoPanelsInDialogState createState() => _InfoPanelsInDialogState();
+}
+
+class _InfoPanelsInDialogState extends State<_InfoPanelsInDialog> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final dic = I18n.of(context).getDic(i18n_full_dic_app, 'public');
+    final dic2 = I18n.of(context).getDic(i18n_full_dic_ui, 'common');
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 8, bottom: 8),
+          child: Image.asset("assets/images/public/plo_proxy_$_page.png",
+              height: 80),
+        ),
+        Container(
+          height: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [Text(dic['auction.proxy.${_page + 1}'])],
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              child: Text(
+                dic2['cancel'],
+                style: TextStyle(
+                  color: acaThemeColor,
+                ),
+              ),
+              onTap: widget.closeDialog,
+            ),
+            GestureDetector(
+              child: Text(
+                dic2['next'],
+                style: TextStyle(color: acaThemeColor),
+              ),
+              onTap: () {
+                setState(() {
+                  if (_page == 2) {
+                    _page = 0;
+                  } else {
+                    _page += 1;
+                  }
+                });
+              },
+            )
+          ],
+        )
+      ],
     );
   }
 }

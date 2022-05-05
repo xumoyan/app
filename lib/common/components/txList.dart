@@ -1,4 +1,4 @@
-import 'package:app/pages/profile/recovery/txDetailPage.dart';
+import 'package:polka_module/pages/profile/recovery/txDetailPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/txData.dart';

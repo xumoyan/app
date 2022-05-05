@@ -1,6 +1,6 @@
-import 'package:app/pages/profile/settings/remoteNodeListPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/profile/settings/remoteNodeListPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -41,7 +41,6 @@ class _Settings extends State<SettingsPage> {
 
     void _onLanguageTap() {
       final cached = widget.service.store.settings.localeCode;
-      _selected = _langOptions.indexOf(cached);
       showCupertinoModalPopup(
         context: context,
         builder: (_) => Container(
@@ -50,8 +49,8 @@ class _Settings extends State<SettingsPage> {
             child: CupertinoPicker(
               backgroundColor: Colors.white,
               itemExtent: 58,
-              scrollController:
-                  FixedExtentScrollController(initialItem: _selected),
+              scrollController: FixedExtentScrollController(
+                  initialItem: _langOptions.indexOf(cached)),
               children: _langOptions.map((i) {
                 return Padding(
                     padding: EdgeInsets.all(16), child: Text(getLang(i)));

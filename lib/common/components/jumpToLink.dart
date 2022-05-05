@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:app/utils/UI.dart';
+import 'package:polka_module/utils/UI.dart';
 
 class JumpToLink extends StatefulWidget {
   JumpToLink(this.url, {this.text, this.color});

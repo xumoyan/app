@@ -1,9 +1,11 @@
-import 'package:app/pages/assets/asset/locksDetailPage.dart';
-import 'package:app/pages/assets/transfer/detailPage.dart';
-import 'package:app/pages/assets/transfer/transferPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/store/types/transferData.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:flutter_boost/flutter_boost.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/pages/assets/asset/locksDetailPage.dart';
+import 'package:polka_module/pages/assets/transfer/detailPage.dart';
+import 'package:polka_module/pages/assets/transfer/transferPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/store/types/transferData.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -67,6 +69,7 @@ class _AssetPageState extends State<AssetPage> {
         .toList();
     txs.add(
         'api.tx.democracy.unlock("${widget.service.keyring.current.address}")');
+    print("TxConfirmPage ==========1");
     final res = await Navigator.of(context).pushNamed(TxConfirmPage.route,
         arguments: TxConfirmParams(
             txTitle: dic['lock.unlock'],
@@ -268,6 +271,9 @@ class _AssetPageState extends State<AssetPage> {
                 transferEnabled = widget
                     .service.store.settings.liveModules['assets']['enabled'];
               }
+              if (widget.service.buildTarget == BuildTargets.dev) {
+                transferEnabled = true;
+              }
             }
 
             BalanceData balancesInfo = widget.service.plugin.balances.native;
@@ -343,9 +349,11 @@ class _AssetPageState extends State<AssetPage> {
                                   Navigator.pushNamed(
                                     context,
                                     TransferPage.route,
-                                    arguments: TransferPageParams(
-                                      redirect: AssetPage.route,
-                                    ),
+                                    arguments: {
+                                      "params": TransferPageParams(
+                                        redirect: AssetPage.route,
+                                      )
+                                    },
                                   );
                                 }
                               : null,
@@ -462,17 +470,17 @@ class BalanceCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Visibility(
-              visible: tokenPrice != null,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 16),
-                child: Text(
-                  '≈ \$ ${tokenPrice ?? '--.--'}',
-                  style: TextStyle(
-                    color: Theme.of(context).cardColor,
+          tokenPrice != null
+              ? Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    '≈ \$ ${tokenPrice ?? '--.--'}',
+                    style: TextStyle(
+                      color: Theme.of(context).cardColor,
+                    ),
                   ),
-                ),
-              )),
+                )
+              : Container(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
@@ -530,50 +538,49 @@ class BalanceCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Visibility(
-                          visible: lockedInfo.length > 2,
-                          child: hasVesting
+                      lockedInfo.length > 2
+                          ? hasVesting
                               ? GestureDetector(
                                   child: Container(
                                     padding: EdgeInsets.only(right: 4),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.info,
-                                            size: 16, color: titleColor),
-                                        priceBuild(balancesInfo, titleColor),
-                                      ],
-                                    ),
+                                    child: Icon(Icons.info,
+                                        size: 16, color: titleColor),
                                   ),
                                   onTap: () => Navigator.of(context)
                                       .pushNamed(LocksDetailPage.route),
                                 )
                               : TapTooltip(
                                   message: lockedInfo,
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.info,
-                                          size: 16, color: titleColor),
-                                      priceBuild(balancesInfo, titleColor),
-                                    ],
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: 4),
+                                    child: Icon(Icons.info,
+                                        size: 16, color: titleColor),
                                   ),
                                   waitDuration: Duration(seconds: 0),
-                                )),
-                      Visibility(
-                          visible: lockedInfo.length <= 2,
-                          child: priceBuild(balancesInfo, titleColor)),
-                      Visibility(
-                          visible: unlocks.length > 0,
-                          child: GestureDetector(
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 4),
-                              child: Icon(
-                                Icons.lock_open,
-                                size: 16,
-                                color: titleColor,
+                                )
+                          : Container(),
+                      Text(
+                        Fmt.priceFloorBigInt(
+                          Fmt.balanceInt(
+                              (balancesInfo?.lockedBalance ?? 0).toString()),
+                          decimals,
+                          lengthMax: 4,
+                        ),
+                        style: TextStyle(color: titleColor),
+                      ),
+                      unlocks.length > 0
+                          ? GestureDetector(
+                              child: Padding(
+                                padding: EdgeInsets.only(left: 6),
+                                child: Icon(
+                                  Icons.lock_open,
+                                  size: 16,
+                                  color: titleColor,
+                                ),
                               ),
-                            ),
-                            onTap: onUnlock,
-                          )),
+                              onTap: onUnlock,
+                            )
+                          : Container(),
                     ],
                   ),
                   Text(
@@ -590,17 +597,6 @@ class BalanceCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget priceBuild(BalanceData balancesInfo, Color titleColor) {
-    return Text(
-      Fmt.priceFloorBigInt(
-        Fmt.balanceInt((balancesInfo?.lockedBalance ?? 0).toString()),
-        decimals,
-        lengthMax: 4,
-      ),
-      style: TextStyle(color: titleColor),
     );
   }
 }

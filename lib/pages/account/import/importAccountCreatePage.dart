@@ -1,8 +1,8 @@
-import 'package:app/pages/account/create/createAccountForm.dart';
-import 'package:app/service/index.dart';
+import 'package:polka_module/pages/account/create/createAccountForm.dart';
+import 'package:polka_module/service/index.dart';
 import 'package:flutter/material.dart';
 
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 
 import 'importAccountAction.dart';

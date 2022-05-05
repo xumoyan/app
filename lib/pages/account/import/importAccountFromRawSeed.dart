@@ -1,6 +1,6 @@
-import 'package:app/pages/account/create/accountAdvanceOption.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/account/create/accountAdvanceOption.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:polkawallet_sdk/api/apiKeyring.dart';

@@ -1,9 +1,9 @@
-import 'package:app/common/consts.dart';
-import 'package:app/common/types/pluginDisabled.dart';
-import 'package:app/pages/account/createAccountEntryPage.dart';
-import 'package:app/pages/public/karCrowdLoanPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/common/types/pluginDisabled.dart';
+import 'package:polka_module/pages/account/createAccountEntryPage.dart';
+import 'package:polka_module/pages/public/karCrowdLoanPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -100,9 +100,9 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
         name.toUpperCase(),
         style: Theme.of(context).textTheme.headline4,
       ),
-      Visibility(
-          visible: plugin_from_community.indexOf(name) > -1,
-          child: _CommunityPluginNote(name, false)),
+      plugin_from_community.indexOf(name) > -1
+          ? _CommunityPluginNote(name, false)
+          : Container(),
       GestureDetector(
         child: RoundedCard(
           margin: EdgeInsets.only(top: 8, bottom: 16),
@@ -367,8 +367,8 @@ class _CommunityPluginNote extends StatelessWidget {
               )
             ],
           ),
-          Visibility(visible: disabled, child: Divider()),
-          Visibility(visible: disabled, child: Text(dic['plugin.disable'])),
+          disabled ? Divider() : Container(),
+          disabled ? Text(dic['plugin.disable']) : Container(),
         ],
       ),
     );

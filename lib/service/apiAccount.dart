@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:app/common/consts.dart';
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +167,6 @@ class ApiAccount {
   Future<RecoveryInfo> queryRecoverable(String address) async {
 //    address = "J4sW13h2HNerfxTzPGpLT66B3HVvuU32S6upxwSeFJQnAzg";
     final res = await apiRoot.plugin.sdk.api.recovery.queryRecoverable(address);
-    apiRoot.store.account.setAccountRecoveryInfo(res);
 
     if (res != null && res.friends.length > 0) {
       queryAddressIcons(res.friends);
@@ -186,24 +185,16 @@ class ApiAccount {
     }
   }
 
-  Future<Map> postKarCrowdLoan(
-      String address,
-      BigInt amount,
-      String email,
-      bool receiveEmail,
-      String referral,
-      String signature,
-      String endpoint,
-      String authToken,
+  Future<Map> postKarCrowdLoan(String address, BigInt amount, String email,
+      bool receiveEmail, String referral, String signature, String endpoint,
       {bool isProxy = false}) async {
-    final submitted = await WalletApi.postKarCrowdLoan(address, amount, email,
-        receiveEmail, referral, signature, endpoint, authToken,
+    final submitted = await WalletApi.postKarCrowdLoan(
+        address, amount, email, receiveEmail, referral, signature, endpoint,
         isProxy: isProxy);
-    // note: do not hide banner after contribute
-    // print(submitted);
-    // if (submitted != null && (submitted['result'] ?? false)) {
-    //   apiRoot.store.account.setBannerVisible(false);
-    // }
+    print(submitted);
+    if (submitted != null && (submitted['result'] ?? false)) {
+      apiRoot.store.account.setBannerVisible(false);
+    }
     return submitted;
   }
 }

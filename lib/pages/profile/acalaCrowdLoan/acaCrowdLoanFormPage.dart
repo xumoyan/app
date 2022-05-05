@@ -1,8 +1,8 @@
-import 'package:app/common/consts.dart';
-import 'package:app/pages/profile/acalaCrowdLoan/acaCrowdLoanPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/service/walletApi.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/pages/profile/acalaCrowdLoan/acaCrowdLoanPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/service/walletApi.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -72,7 +72,6 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
   String _email = '';
   bool _emailValid = true;
   bool _emailAccept = true;
-  bool _keepAlive = true;
 
   void _onAmountChange(String value, BigInt balanceInt, Map promotion) {
     final v = value.trim();
@@ -93,8 +92,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
 
     final decimals =
         (widget.service.plugin.networkState.tokenDecimals ?? [12])[0];
-    final enough = (amt + (_keepAlive ? 1.1 : 0.0)) <
-        Fmt.bigIntToDouble(balanceInt, decimals);
+    final enough = amt < Fmt.bigIntToDouble(balanceInt, decimals);
     final AcaCrowdLoanPageParams params =
         ModalRoute.of(context).settings.arguments;
     final valid = enough &&
@@ -199,6 +197,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
     final amountInt = Fmt.tokenInt(_amount.toString(), decimals);
     final signed = widget.service.store.storage
         .read('$aca_statement_store_key${account.pubKey}');
+    final endpoint = widget.service.store.settings.adBannerState['endpoint'];
     final signingRes = await widget.service.account.postKarCrowdLoan(
         account.address,
         amountInt,
@@ -206,8 +205,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
         _emailAccept,
         _referral,
         signed,
-        widget.service.store.settings.adBannerState['endpoint'],
-        widget.service.store.settings.adBannerState['subscribe']);
+        endpoint);
     if (signingRes != null && (signingRes['result'] ?? false)) {
       final dic = I18n.of(context).getDic(i18n_full_dic_app, 'public');
       final txParams = [
@@ -230,7 +228,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
       final res = (await Navigator.of(context)
           .pushNamed(TxConfirmPage.route, arguments: txArgs)) as Map;
       if (res != null) {
-        // _saveLocalTxData(txArgs, txParams, res, isProxy: false);
+        _saveLocalTxData(txArgs, txParams, res);
 
         await showCupertinoDialog(
           context: context,
@@ -285,6 +283,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
     if (_referral.isNotEmpty && _referralValid) {
       batchTxs.add('api.tx.system.remarkWithEvent("referrer:$_referral")');
     }
+    final endpoint = widget.service.store.settings.adBannerState['endpoint'];
     await widget.service.account.postKarCrowdLoan(
         params.account.address,
         amountInt,
@@ -292,8 +291,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
         _emailAccept,
         _referral,
         '',
-        widget.service.store.settings.adBannerState['endpoint'],
-        widget.service.store.settings.adBannerState['subscribe'],
+        endpoint,
         isProxy: true);
     final txArgs = TxConfirmParams(
       module: 'utility',
@@ -310,12 +308,12 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
     final res = (await Navigator.of(context)
         .pushNamed(TxConfirmPage.route, arguments: txArgs)) as Map;
     if (res != null) {
-      // final txParams = [
-      //   params.statement['paraId'].toString(),
-      //   amountInt.toString(),
-      // ];
-      // _saveLocalTxData(TxConfirmParams(module: 'crowdloan', call: 'contribute'),
-      //     txParams, res);
+      final txParams = [
+        params.statement['paraId'].toString(),
+        amountInt.toString(),
+      ];
+      _saveLocalTxData(TxConfirmParams(module: 'crowdloan', call: 'contribute'),
+          txParams, res);
 
       await showCupertinoDialog(
         context: context,
@@ -348,9 +346,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
   }
 
   // todo: make this local-tx-storage a plugin function
-  // note: do not use this local data for some unsolved bug
-  void _saveLocalTxData(TxConfirmParams txArgs, List txParams, Map txRes,
-      {bool isProxy = true}) {
+  void _saveLocalTxData(TxConfirmParams txArgs, List txParams, Map txRes) {
     final pubKey = widget.service.keyring.current.pubKey;
     final Map cache =
         widget.service.store.storage.read('$local_tx_store_key:$pubKey') ?? {};
@@ -363,8 +359,6 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
       'blockHash': txRes['blockHash'],
       'eventId': txRes['eventId'],
       'timestamp': DateTime.now().millisecondsSinceEpoch,
-      'type':
-          isProxy ? AcaCrowdLoanPage.typeProxy : AcaCrowdLoanPage.typeDirect,
     });
     cache[pubKey] = txs;
     widget.service.store.storage.write('$local_tx_store_key:$pubKey', cache);
@@ -407,7 +401,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
       final balanceInt = Fmt.balanceInt(
           widget.service.plugin.balances.native.availableBalance.toString());
       final balanceView =
-          Fmt.priceFloorBigInt(balanceInt, decimals, lengthMax: 4);
+          Fmt.priceFloorBigInt(balanceInt, decimals, lengthMax: 8);
 
       final isConnected = widget.connectedNode != null;
 
@@ -418,21 +412,13 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
       final double amountAca =
           _amountValid ? _amount * _rewardMultiplier / _rewardDivider : 0;
       final raised = BigInt.parse(params.fundInfo['raised'].toString());
-      double ratioAcaMax = raised > AcaCrowdLoanPage.contributeAmountMax
-          ? AcaCrowdLoanPage.contributeAmountMaxDivider / raised
+      final double ratioAcaMax = raised > AcaCrowdLoanPage.contributeAmountMax
+          ? raised / AcaCrowdLoanPage.contributeAmountMaxDivider
           : AcaCrowdLoanPage.rewardAmountMax;
-      if (ratioAcaMax < 3) {
-        ratioAcaMax = 3;
-      }
 
       final double karReward = _karRewardValid ? amountAca * _karRewardRate : 0;
 
-      double acaAmountTotal = amountAca *
-          (_referralValid
-              ? (_referral == widget.service.keyring.current.pubKey
-                  ? 1.1
-                  : 1.05)
-              : 1);
+      double acaAmountTotal = amountAca * (_referralValid ? 1.05 : 1);
       double acaPromotion = 0;
       if (params.promotion['result']) {
         if (params.promotion['acaRate'] > 0) {
@@ -504,52 +490,14 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
               ),
               Container(
                 margin: EdgeInsets.only(left: 16, bottom: 4),
-                child: Visibility(
-                    visible: _amount > 0 && !_amountValid,
-                    child: Text(
-                      _amountEnough
-                          ? '${dic['auction.invalid']} ${dic['auction.amount.error']} ${minContribute.toInt()} DOT'
-                          : dic['balance.insufficient'],
-                      style: errorStyle,
-                    )),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 14),
-                child: Row(
-                  children: [
-                    Theme(
-                      child: SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: Padding(
-                          padding: EdgeInsets.only(right: 8),
-                          child: Checkbox(
-                            value: _keepAlive,
-                            onChanged: (v) {
-                              setState(() {
-                                _keepAlive = v;
-                              });
-                              _onAmountChange(_amount.toString(), balanceInt,
-                                  params.promotion);
-                            },
-                          ),
-                        ),
+                child: _amount == 0 || _amountValid
+                    ? Container()
+                    : Text(
+                        _amountEnough
+                            ? '${dic['auction.invalid']} ${dic['auction.amount.error']} ${minContribute.toInt()} DOT'
+                            : dic['balance.insufficient'],
+                        style: errorStyle,
                       ),
-                      data: ThemeData(
-                        primarySwatch: acaThemeColor,
-                        unselectedWidgetColor: acaThemeColor, // Your color
-                      ),
-                    ),
-                    Text(dic['auction.alive']),
-                    TapTooltip(
-                      child: Container(
-                        padding: EdgeInsets.only(left: 4),
-                        child: Icon(Icons.info, color: acaThemeColor, size: 16),
-                      ),
-                      message: dic['auction.alive.msg'],
-                    ),
-                  ],
-                ),
               ),
               _getTitle(dic['auction.referral']),
               Container(
@@ -576,12 +524,12 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
               ),
               Container(
                 margin: EdgeInsets.only(left: 16, bottom: 4),
-                child: Visibility(
-                    visible: _referral.isNotEmpty && !_referralValid,
-                    child: Text(
-                      '${dic['auction.invalid']} ${dic['auction.referral']}',
-                      style: errorStyle,
-                    )),
+                child: _referral.isEmpty || _referralValid
+                    ? Container()
+                    : Text(
+                        '${dic['auction.invalid']} ${dic['auction.referral']}',
+                        style: errorStyle,
+                      ),
               ),
               Container(
                 margin: EdgeInsets.only(
@@ -594,19 +542,19 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Visibility(
-                        visible: params.ploType == AcaPloType.proxy,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(dic['auction.receive.dot'],
-                                style: karKeyStyle),
-                            Text(
-                                '${Fmt.priceFloor(_amount, lengthMax: 4)} lcDOT',
-                                style: karStyle),
-                            Divider(color: acaThemeColor),
-                          ],
-                        )),
+                    params.ploType == AcaPloType.proxy
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(dic['auction.receive.dot'],
+                                  style: karKeyStyle),
+                              Text(
+                                  '${Fmt.priceFloor(_amount, lengthMax: 4)} lcDOT',
+                                  style: karStyle),
+                              Divider(color: acaThemeColor),
+                            ],
+                          )
+                        : Container(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -636,9 +584,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
                             karReward: karReward,
                             karRewardRate: _karRewardRate,
                             promotion: params.promotion,
-                            acaPromotion: acaPromotion,
-                            referralIsSelf: _referral ==
-                                widget.service.keyring.current.pubKey)
+                            acaPromotion: acaPromotion)
                         : Container(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -661,7 +607,7 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(dic['auction.lease'], style: karKeyStyle),
-                        Text('96 weeks', style: karInfoStyle),
+                        Text('24 Months', style: karInfoStyle),
                       ],
                     ),
                   ],
@@ -692,12 +638,12 @@ class _AcaCrowdLoanFormPageState extends State<AcaCrowdLoanFormPage> {
               ),
               Container(
                 margin: EdgeInsets.only(left: 16, bottom: 4),
-                child: Visibility(
-                    visible: _email.isNotEmpty && !_emailValid,
-                    child: Text(
-                      '${dic['auction.invalid']} ${dic['auction.email']}',
-                      style: TextStyle(color: Colors.red, fontSize: 10),
-                    )),
+                child: _email.isEmpty || _emailValid
+                    ? Container()
+                    : Text(
+                        '${dic['auction.invalid']} ${dic['auction.email']}',
+                        style: TextStyle(color: Colors.red, fontSize: 10),
+                      ),
               ),
               _email.isNotEmpty
                   ? Container(
@@ -765,8 +711,7 @@ class RewardDetailPanel extends StatelessWidget {
       this.karReward,
       this.karRewardRate,
       this.promotion,
-      this.acaPromotion,
-      this.referralIsSelf = false});
+      this.acaPromotion});
 
   final double acaAmountMin;
   final double ratioAcaMax;
@@ -775,7 +720,6 @@ class RewardDetailPanel extends StatelessWidget {
   final double karRewardRate;
   final Map promotion;
   final double acaPromotion;
-  final bool referralIsSelf;
 
   @override
   Widget build(BuildContext context) {
@@ -810,11 +754,10 @@ class RewardDetailPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Expanded(
-                        child: Text(
-                            '${referralIsSelf ? "+10%" : "+5%"} ${dic['auction.invite']}',
+                        child: Text('+5% ${dic['auction.invite']}',
                             style: karInfoStyle)),
                     Text(
-                        '${Fmt.priceFloor(acaAmountMin * (referralIsSelf ? 0.1 : 0.05), lengthMax: 4)} - ${Fmt.priceFloor(acaAmountMax * (referralIsSelf ? 0.1 : 0.05), lengthMax: 4)} ACA',
+                        '${Fmt.priceFloor(acaAmountMin * 0.05, lengthMax: 4)} - ${Fmt.priceFloor(acaAmountMax * 0.05, lengthMax: 4)} ACA',
                         style: karInfoStyle),
                   ],
                 )

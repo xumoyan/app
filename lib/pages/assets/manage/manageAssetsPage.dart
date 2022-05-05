@@ -1,6 +1,6 @@
-import 'package:app/common/consts.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/plugin/store/balances.dart';
@@ -242,13 +242,13 @@ class _ManageAssetsPageState extends State<ManageAssetsPage> {
                                           fontWeight: FontWeight.bold,
                                           color: colorGrey),
                                     ),
-                                    Visibility(
-                                        visible: list[i].name != null,
-                                        child: Text(
-                                          '$id${list[i].name}',
-                                          style: TextStyle(
-                                              fontSize: 12, color: colorGrey),
-                                        ))
+                                    list[i].name != null
+                                        ? Text(
+                                            '$id${list[i].name}',
+                                            style: TextStyle(
+                                                fontSize: 12, color: colorGrey),
+                                          )
+                                        : Container()
                                   ],
                                 ),
                               ),

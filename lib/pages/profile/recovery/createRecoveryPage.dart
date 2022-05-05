@@ -1,9 +1,9 @@
-import 'package:app/common/consts.dart';
-import 'package:app/pages/profile/recovery/friendListPage.dart';
-import 'package:app/pages/profile/recovery/recoverySettingPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/UI.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/pages/profile/recovery/friendListPage.dart';
+import 'package:polka_module/pages/profile/recovery/recoverySettingPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/UI.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
@@ -200,39 +200,39 @@ ${dic['recovery.deposit.factor']} = ${Fmt.doubleFormat(_friendDepositFactor)} $s
                       padding: EdgeInsets.only(left: 16),
                       child: RecoveryFriendList(friends: _friends),
                     ),
-                    Visibility(
-                        visible: _friends.length > 1,
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                dic['recovery.threshold'],
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              Text(
-                                '${_threshold.toInt()} / ${_friends.length}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
+                    _friends.length > 1
+                        ? Padding(
+                            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  dic['recovery.threshold'],
+                                  style: TextStyle(fontSize: 16),
                                 ),
-                              )
-                            ],
-                          ),
-                        )),
-                    Visibility(
-                        visible: _friends.length > 1,
-                        child: ThresholdSlider(
-                          value: _threshold,
-                          friends: _friends,
-                          onChanged: (v) {
-                            setState(() {
-                              _threshold = v;
-                            });
-                          },
-                        )),
+                                Text(
+                                  '${_threshold.toInt()} / ${_friends.length}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                )
+                              ],
+                            ),
+                          )
+                        : Container(),
+                    _friends.length > 1
+                        ? ThresholdSlider(
+                            value: _threshold,
+                            friends: _friends,
+                            onChanged: (v) {
+                              setState(() {
+                                _threshold = v;
+                              });
+                            },
+                          )
+                        : Container(),
                     Padding(
                       padding: EdgeInsets.only(left: 16, top: 16),
                       child: Text(
@@ -296,13 +296,13 @@ ${dic['recovery.deposit.factor']} = ${Fmt.doubleFormat(_friendDepositFactor)} $s
                                     ),
                                   ),
                                 ),
-                                Visibility(
-                                    visible: _delayError != null,
-                                    child: Text(
-                                      _delayError ?? "",
-                                      style: TextStyle(
-                                          color: Colors.red, fontSize: 12),
-                                    ))
+                                _delayError != null
+                                    ? Text(
+                                        _delayError,
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 12),
+                                      )
+                                    : Container()
                               ],
                             ),
                           )

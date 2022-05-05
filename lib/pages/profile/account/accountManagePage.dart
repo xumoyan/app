@@ -1,10 +1,10 @@
-import 'package:app/pages/profile/account/signPage.dart';
+import 'package:polka_module/pages/profile/account/signPage.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:app/pages/profile/account/changeNamePage.dart';
-import 'package:app/pages/profile/account/changePasswordPage.dart';
-import 'package:app/pages/profile/account/exportAccountPage.dart';
-import 'package:app/service/index.dart';
-import 'package:app/utils/i18n/index.dart';
+import 'package:polka_module/pages/profile/account/changeNamePage.dart';
+import 'package:polka_module/pages/profile/account/changePasswordPage.dart';
+import 'package:polka_module/pages/profile/account/exportAccountPage.dart';
+import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -184,20 +184,20 @@ class _AccountManagePageState extends State<AccountManagePage> {
                     onTap: () => Navigator.of(context)
                         .pushNamed(ExportAccountPage.route),
                   ),
-                  Visibility(
-                      visible: _supportBiometric,
-                      child: ListTile(
-                        title: Text(I18n.of(context).getDic(
-                            i18n_full_dic_app, 'account')['unlock.bio.enable']),
-                        trailing: CupertinoSwitch(
-                          value: _isBiometricAuthorized,
-                          onChanged: (v) {
-                            if (v != _isBiometricAuthorized) {
-                              _updateBiometricAuth(v);
-                            }
-                          },
-                        ),
-                      )),
+                  _supportBiometric
+                      ? ListTile(
+                          title: Text(I18n.of(context).getDic(i18n_full_dic_app,
+                              'account')['unlock.bio.enable']),
+                          trailing: CupertinoSwitch(
+                            value: _isBiometricAuthorized,
+                            onChanged: (v) {
+                              if (v != _isBiometricAuthorized) {
+                                _updateBiometricAuth(v);
+                              }
+                            },
+                          ),
+                        )
+                      : Container(),
                 ],
               ),
             ),
