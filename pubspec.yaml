@@ -3,7 +3,7 @@ description: Polkawallet built with Flutter.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.i.eventId == 'Reward';
 # The following defines the version and build number for your application.
@@ -27,7 +27,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   json_annotation: ^4.0.1
-#  json_annotation: ^3.1.1
+  #  json_annotation: ^3.1.1
   get_storage: ^2.0.2
   biometric_storage: ^2.0.2
   update_app: ^0.1.7
@@ -37,7 +37,7 @@ dependencies:
   firebase_core: 1.5.0
   firebase_analytics: 8.3.0
   flutter_screenutil: ^5.0.0+2
-#  firebase_messaging: 10.0.5
+  #  firebase_messaging: 10.0.5
   jpush_flutter:
     git:
       url: https://github.com/polkawallet-io/jpush-flutter-plugin.git
@@ -46,42 +46,42 @@ dependencies:
     git:
       url: https://github.com/polkawallet-io/polkawallet_plugin_kusama.git
       ref: 37ea059b990e6771926da7e0148da417d376a4fd
-  polkawallet_plugin_acala:
-    git:
-      url: https://github.com/AcalaNetwork/polkawallet_plugin_acala.git
-      ref: 61dc26bc87986272c1077bf62cec8cda19e32e06
+  # polkawallet_plugin_acala:
+  #   git:
+  #     url: https://github.com/AcalaNetwork/polkawallet_plugin_acala.git
+  #     ref: 61dc26bc87986272c1077bf62cec8cda19e32e06
   polkawallet_plugin_karura:
     git:
       url: https://github.com/AcalaNetwork/polkawallet_plugin_karura.git
       ref: 70e236b5d2f1b73ed868b390171d43fbc3050fa0
-  polkawallet_plugin_statemine:
-    git:
-      url: https://github.com/polkawallet-io/polkawallet_plugin_statemine.git
-      ref: 920084c88546c0eb6f66a2dfa290a12c04928767
-  polkawallet_plugin_laminar:
-    git:
-      url: https://github.com/polkawallet-io/polkawallet_plugin_laminar.git
-      ref: 7950c74abe74494aed49662b37dcebdacf1013c1
-  polkawallet_plugin_bifrost:
-    git:
-      url: https://github.com/bifrost-finance/polkawallet_plugin_bifrost.git
-      ref: b5677954c17432ca6b32da4dd31929b0fa0c3171
-  polkawallet_plugin_chainx:
-    git:
-      url: https://github.com/chainx-org/polkawallet_plugin_chainx.git
-      ref: 2cc634bc4f0b873e7fe0801d5d3fba46756f5315
-  polkawallet_plugin_edgeware:
-    git:
-      url: https://github.com/remzrn/polkawallet_plugin_edgeware.git
-      ref: 11be316dc77b721d41ed6774fbf8d444a5a8eaa9
-  polkawallet_plugin_dbc:
-    git:
-      url: https://github.com/DeepBrainChain/PolkaWallet_Plugin_DBC
-      ref: 1cfd68ebbee73f2cf211dedf5eaf9332e8399a8d
-  polkawallet_plugin_robonomics:
-    git:
-      url: https://github.com/Multi-Agent-io/polkawallet_plugin_robonomics.git
-      ref: 480a3872cc684b72f3d1dad9e05871ea0dd82f04
+  # polkawallet_plugin_statemine:
+  #   git:
+  #     url: https://github.com/polkawallet-io/polkawallet_plugin_statemine.git
+  #     ref: 920084c88546c0eb6f66a2dfa290a12c04928767
+  # polkawallet_plugin_laminar:
+  #   git:
+  #     url: https://github.com/polkawallet-io/polkawallet_plugin_laminar.git
+  #     ref: 7950c74abe74494aed49662b37dcebdacf1013c1
+  # polkawallet_plugin_bifrost:
+  #   git:
+  #     url: https://github.com/bifrost-finance/polkawallet_plugin_bifrost.git
+  #     ref: b5677954c17432ca6b32da4dd31929b0fa0c3171
+  # polkawallet_plugin_chainx:
+  #   git:
+  #     url: https://github.com/chainx-org/polkawallet_plugin_chainx.git
+  #     ref: 2cc634bc4f0b873e7fe0801d5d3fba46756f5315
+  # polkawallet_plugin_edgeware:
+  #   git:
+  #     url: https://github.com/remzrn/polkawallet_plugin_edgeware.git
+  #     ref: 11be316dc77b721d41ed6774fbf8d444a5a8eaa9
+  # polkawallet_plugin_dbc:
+  #   git:
+  #     url: https://github.com/DeepBrainChain/PolkaWallet_Plugin_DBC
+  #     ref: 1cfd68ebbee73f2cf211dedf5eaf9332e8399a8d
+  # polkawallet_plugin_robonomics:
+  #   git:
+  #     url: https://github.com/Multi-Agent-io/polkawallet_plugin_robonomics.git
+  #     ref: 480a3872cc684b72f3d1dad9e05871ea0dd82f04
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -99,39 +99,37 @@ dependencies:
 
 dependency_overrides:
   polkawallet_plugin_kusama:
-    path: ../../coding/polkawallet/polkawallet_plugin_kusama
-  polkawallet_plugin_acala:
-    path: ../../coding/polkawallet/polkawallet_plugin_acala
+    path: ../coding/polkawallet/polkawallet_plugin_kusama
   polkawallet_plugin_karura:
-    path: ../../coding/polkawallet/polkawallet_plugin_karura
-#  polkawallet_plugin_bifrost:
-#    path: ../../coding/polkawallet/polkawallet_plugin_bifrost
-#  polkawallet_plugin_laminar:
-#    path: ../../coding/polkawallet/polkawallet_plugin_laminar
-  polkawallet_plugin_statemine:
-    path: ../../coding/polkawallet/polkawallet_plugin_statemine
-#  polkawallet_plugin_chainx:
-#    path: ../../coding/polkawallet/polkawallet_plugin_chainx
-#  polkawallet_plugin_edgeware:
-#    path: ../../coding/polkawallet/polkawallet_plugin_edgeware
-#  polkawallet_ui: ^0.4.1
+    path: ../coding/polkawallet/polkawallet_plugin_karura
+  #  polkawallet_plugin_bifrost:
+  #    path: ../../coding/polkawallet/polkawallet_plugin_bifrost
+  #  polkawallet_plugin_laminar:
+  #    path: ../../coding/polkawallet/polkawallet_plugin_laminar
+  # polkawallet_plugin_statemine:
+  #   path: ../../coding/polkawallet/polkawallet_plugin_statemine
+  #  polkawallet_plugin_chainx:
+  #    path: ../../coding/polkawallet/polkawallet_plugin_chainx
+  #  polkawallet_plugin_edgeware:
+  #    path: ../../coding/polkawallet/polkawallet_plugin_edgeware
+  #  polkawallet_ui: ^0.4.1
   polkawallet_ui:
-     path: ../../coding/polkawallet/ui
-#    git:
-#      url: https://github.com/polkawallet-io/ui.git
-#      ref: 485a9cde97f2446d74a1aeb6d8d63e33683461a5
-#    path: ../../coding/polkawallet/ui
-#  polkawallet_sdk: ^0.4.1
+    path: ../coding/polkawallet/ui
+  #    git:
+  #      url: https://github.com/polkawallet-io/ui.git
+  #      ref: 485a9cde97f2446d74a1aeb6d8d63e33683461a5
+  #    path: ../../coding/polkawallet/ui
+  #  polkawallet_sdk: ^0.4.1
   polkawallet_sdk:
-     path: ../../coding/polkawallet/sdk
+    path: ../coding/polkawallet/sdk
   transformer_page_view:
     git:
       url: https://github.com/polkawallet-io/transformer_page_view.git
       ref: 19f3b7c46d5e81653cf027baa2cbe8d629dc052d
   charts_flutter:
-     git:
-       url: https://github.com/google/charts
-       path: charts_flutter
+    git:
+      url: https://github.com/google/charts
+      path: charts_flutter
   flutter_svg: ^0.23.0+1
   liquid_progress_indicator: ^0.4.0
   webview_flutter: ^3.0.0
@@ -139,16 +137,15 @@ dependency_overrides:
   cached_network_image: ^3.2.0
   flutter_html: ^2.2.1
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^2.0.3
   mobx_codegen: ^2.0.1+3
   json_serializable: ^4.1.2
-#  build_runner: ^1.10.9
-#  mobx_codegen: ^1.1.1
-#  json_serializable: ^3.5.1
+  #  build_runner: ^1.10.9
+  #  mobx_codegen: ^1.1.1
+  #  json_serializable: ^3.5.1
   flutter_launcher_icons: ^0.9.0
   rive: ^0.7.33
 
@@ -162,7 +159,6 @@ flutter_icons:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
