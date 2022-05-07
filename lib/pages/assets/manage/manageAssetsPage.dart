@@ -3,9 +3,12 @@ import 'package:polka_module/service/index.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polkawallet_sdk/plugin/store/balances.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/tokenIcon.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/index.dart' as v3;
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 
@@ -31,7 +34,7 @@ class _ManageAssetsPageState extends State<ManageAssetsPage> {
     if (_hide0) {
       widget.service.plugin.noneNativeTokensAll.forEach((e) {
         if (Fmt.balanceInt(e.amount) == BigInt.zero) {
-          config[e.id] = false;
+          config[e.symbol] = false;
         }
       });
     }
@@ -69,20 +72,20 @@ class _ManageAssetsPageState extends State<ManageAssetsPage> {
 
       if (widget.service.store.assets.customAssets.keys.length == 0) {
         final defaultList =
-            widget.service.plugin.balances.tokens.map((e) => e.id).toList();
+            widget.service.plugin.balances.tokens.map((e) => e.symbol).toList();
         defaultList.forEach((token) {
           defaultVisibleMap[token] = true;
         });
 
         widget.service.plugin.noneNativeTokensAll.forEach((token) {
-          if (defaultVisibleMap[token.id] == null) {
-            defaultVisibleMap[token.id] = false;
+          if (defaultVisibleMap[token.symbol] == null) {
+            defaultVisibleMap[token.symbol] = false;
           }
         });
       } else {
         widget.service.plugin.noneNativeTokensAll.forEach((token) {
-          defaultVisibleMap[token.id] =
-              widget.service.store.assets.customAssets[token.id];
+          defaultVisibleMap[token.symbol] =
+              widget.service.store.assets.customAssets[token.symbol];
         });
       }
 
@@ -109,7 +112,9 @@ class _ManageAssetsPageState extends State<ManageAssetsPage> {
 
     final List<TokenBalanceData> list = [
       TokenBalanceData(
-          amount: widget.service.plugin.balances.native.freeBalance.toString(),
+          amount:
+              widget.service.plugin.balances.native?.freeBalance?.toString() ??
+                  "",
           decimals: widget.service.plugin.networkState.tokenDecimals[0],
           id: widget.service.plugin.networkState.tokenSymbol[0],
           symbol: widget.service.plugin.networkState.tokenSymbol[0],
@@ -130,151 +135,165 @@ class _ManageAssetsPageState extends State<ManageAssetsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['manage']),
-        centerTitle: true,
-        actions: [
-          TextButton(
-              onPressed: _onSave,
-              child: Text(
-                dic['manage.save'],
-                style: TextStyle(color: Theme.of(context).cardColor),
-              ))
-        ],
-      ),
+          title: Text(dic['manage']),
+          centerTitle: true,
+          elevation: 1.5,
+          actions: [
+            GestureDetector(
+                onTap: _onSave,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(15.h, 0, 15.h, 4),
+                  margin: EdgeInsets.only(right: 14.w),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    image: DecorationImage(
+                        image: AssetImage("assets/images/icon_bg.png"),
+                        fit: BoxFit.contain),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    dic['manage.save'],
+                    style: TextStyle(
+                      color: Theme.of(context).cardColor,
+                      fontSize: 12,
+                      fontFamily: 'TitilliumWeb',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ))
+          ],
+          leading: BackBtn()),
       body: SafeArea(
         child: Column(
           children: [
             Container(
-              margin: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 0,
-                    child: GestureDetector(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: _hide0
-                                ? Theme.of(context).primaryColor
-                                : Theme.of(context).disabledColor,
-                            size: 16,
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(left: 4, right: 16),
-                            child: Text(
-                              dic['manage.hide'],
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: _hide0
-                                      ? Theme.of(context).primaryColor
-                                      : colorGrey),
-                            ),
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        setState(() {
-                          _hide0 = !_hide0;
-                        });
-                      },
+                margin: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                height: 52,
+                child: v3.TextInputWidget(
+                  decoration: v3.InputDecorationV3(
+                    contentPadding: EdgeInsets.zero,
+                    hintText: dic['manage.filter'],
+                    icon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).disabledColor,
+                      size: 20,
                     ),
                   ),
-                  Expanded(
-                    child: CupertinoTextField(
-                      padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(24)),
-                        border: Border.all(
-                            width: 0.5, color: Theme.of(context).dividerColor),
-                      ),
-                      controller: _filterCtrl,
-                      placeholder: dic['manage.filter'],
-                      placeholderStyle: TextStyle(
-                          fontSize: 14, color: Theme.of(context).disabledColor),
-                      cursorHeight: 14,
-                      style: TextStyle(fontSize: 14),
-                      suffix: Container(
-                        margin: EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Icons.search,
-                          color: Theme.of(context).disabledColor,
-                          size: 20,
-                        ),
-                      ),
-                      onChanged: (v) {
-                        setState(() {
-                          _filter = _filterCtrl.text.trim().toUpperCase();
-                        });
-                      },
+                  controller: _filterCtrl,
+                  style: Theme.of(context).textTheme.headline5,
+                  onChanged: (v) {
+                    setState(() {
+                      _filter = _filterCtrl.text.trim().toUpperCase();
+                    });
+                  },
+                )),
+            Container(
+              margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+              child: GestureDetector(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: _hide0
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).disabledColor,
+                      size: 14,
                     ),
-                  )
-                ],
+                    Container(
+                      margin: EdgeInsets.only(left: 4, right: 16),
+                      child: Text(
+                        dic['manage.hide'],
+                        style: Theme.of(context).textTheme.headline5.copyWith(
+                            fontFamily: 'SF_Pro',
+                            color: _hide0
+                                ? Theme.of(context).primaryColor
+                                : colorGrey),
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  setState(() {
+                    _hide0 = !_hide0;
+                  });
+                },
               ),
             ),
             Expanded(
               child: _tokenVisible.keys.length == 0
                   ? Center(child: CupertinoActivityIndicator())
                   : ListView.builder(
-                      padding: EdgeInsets.all(16),
+                      physics: BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(bottom: 16),
                       itemCount: list.length,
                       itemBuilder: (_, i) {
                         final id = isStateMint ? '#${list[i].id} ' : '';
-                        return Container(
-                          margin: EdgeInsets.only(bottom: 24),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.only(right: 16),
-                                child: TokenIcon(
-                                  list[i].id,
+                        return Column(
+                          children: [
+                            Container(
+                              color: Colors.transparent,
+                              child: ListTile(
+                                dense: list[i].fullName != null,
+                                leading: TokenIcon(
+                                  widget.service.plugin.basic.name ==
+                                          para_chain_name_statemine
+                                      ? list[i].id
+                                      : list[i].symbol,
                                   widget.service.plugin.tokenIcons,
                                   symbol: list[i].symbol,
                                 ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                title: Text(list[i].name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline4
+                                        .copyWith(fontWeight: FontWeight.w600)),
+                                subtitle: list[i].fullName != null
+                                    ? Text('$id${list[i].fullName}',
+                                        maxLines: 2,
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w300,
+                                            color: Color(0xFF565554),
+                                            fontFamily: "SF_Pro"))
+                                    : null,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      list[i].symbol,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorGrey),
-                                    ),
-                                    list[i].name != null
-                                        ? Text(
-                                            '$id${list[i].name}',
-                                            style: TextStyle(
-                                                fontSize: 12, color: colorGrey),
-                                          )
-                                        : Container()
+                                    Padding(
+                                        padding: EdgeInsets.only(right: 18.w),
+                                        child: Text(
+                                          Fmt.priceFloorBigInt(
+                                              Fmt.balanceInt(list[i].amount),
+                                              list[i].decimals,
+                                              lengthMax: 4),
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: -0.6),
+                                        )),
+                                    Image.asset(
+                                      "assets/images/${(_tokenVisible[list[i].symbol] ?? false) ? "icon_circle_select.png" : "icon_circle_unselect.png"}",
+                                      fit: BoxFit.contain,
+                                      width: 16.w,
+                                    )
                                   ],
                                 ),
-                              ),
-                              Text(
-                                Fmt.priceFloorBigInt(
-                                    Fmt.balanceInt(list[i].amount),
-                                    list[i].decimals,
-                                    lengthMax: 4),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.6),
-                              ),
-                              CupertinoSwitch(
-                                value: _tokenVisible[list[i].id] ?? false,
-                                onChanged: (v) {
-                                  if (list[i].id !=
+                                onTap: () {
+                                  if (list[i].symbol !=
                                       widget.service.plugin.networkState
                                           .tokenSymbol[0]) {
                                     setState(() {
-                                      _tokenVisible[list[i].id] = v;
+                                      _tokenVisible[list[i].symbol] =
+                                          !(_tokenVisible[list[i].symbol] ??
+                                              false);
                                     });
                                   }
                                 },
-                              )
-                            ],
-                          ),
+                              ),
+                            ),
+                            Divider(
+                              height: 1,
+                            )
+                          ],
                         );
                       },
                     ),

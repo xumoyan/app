@@ -19,7 +19,7 @@ class AppStore {
   Future<void> init() async {
     settings = SettingsStore(storage);
     await settings.init();
-    account = AccountStore(storage);
+    account = AccountStore();
     assets = AssetsStore(storage);
     parachain = ParachainStore(storage);
   }

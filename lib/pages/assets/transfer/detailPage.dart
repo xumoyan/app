@@ -3,9 +3,9 @@ import 'package:polka_module/store/types/transferData.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:polkawallet_ui/components/txDetail.dart';
-import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/txDetail.dart';
+import 'package:polkawallet_ui/utils/format.dart';
 
 class TransferDetailPage extends StatelessWidget {
   TransferDetailPage(this.service);
@@ -21,7 +21,7 @@ class TransferDetailPage extends StatelessWidget {
     final decimals = (service.plugin.networkState.tokenDecimals ?? [12])[0];
 
     final TransferData tx = ModalRoute.of(context).settings.arguments;
-    final amount = Fmt.priceFloor(double.parse(tx.amount), lengthFixed: 4);
+    final amount = Fmt.priceFloor(double.parse(tx.amount), lengthMax: 4);
 
     final String txType = tx.from == service.keyring.current.address
         ? dic['transfer']
@@ -32,6 +32,7 @@ class TransferDetailPage extends StatelessWidget {
       networkName = '${networkName.split('-')[0]}-testnet';
     }
     return TxDetail(
+      current: service.keyring.current,
       success: tx.success,
       action: txType,
       fee: '${Fmt.balance(tx.fee, decimals)} $symbol',
@@ -45,18 +46,19 @@ class TransferDetailPage extends StatelessWidget {
         TxDetailInfoItem(
           label: dic['amount'],
           content: Text(
-            '$amount $symbol',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+              '${txType == dic['transfer'] ? "-" : ""}$amount $symbol',
+              style: Theme.of(context).textTheme.headline1),
         ),
         TxDetailInfoItem(
           label: dic['from'],
-          content: Text(Fmt.address(tx.from)),
+          content: Text(Fmt.address(tx.from),
+              style: Theme.of(context).textTheme.headline4),
           copyText: tx.from,
         ),
         TxDetailInfoItem(
           label: dic['to'],
-          content: Text(Fmt.address(tx.to)),
+          content: Text(Fmt.address(tx.to),
+              style: Theme.of(context).textTheme.headline4),
           copyText: tx.to,
         )
       ],

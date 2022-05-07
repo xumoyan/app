@@ -1,8 +1,5 @@
-import 'package:polka_module/pages/account/create/createAccountForm.dart';
-import 'package:polka_module/pages/account/import/importAccountForm.dart';
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/utils/UI.dart';
-import 'package:polka_module/utils/i18n/index.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +20,7 @@ class ImportAccountAction {
       await storeFile.write(service.store.account.newAccount.password);
       service.account.setBiometricEnabled(service.keyring.current.pubKey);
     } catch (err) {
-      // ignore
+      service.account.closeBiometricDisabled(service.keyring.current.pubKey);
     }
   }
 
@@ -58,7 +55,6 @@ class ImportAccountAction {
         cryptoType: _cryptoType,
         derivePath: _derivePath,
       );
-
       if (acc == null) {
         obSubmittingChang(false);
         Navigator.of(context).pop();
@@ -95,7 +91,7 @@ class ImportAccountAction {
           cryptoType: _cryptoType,
           derivePath: _derivePath,
         );
-        service.account.setBiometricDisabled(acc['pubKey']);
+        service.account.closeBiometricDisabled(acc['pubKey']);
       }
       obSubmittingChang(false);
       Navigator.of(context).pop();

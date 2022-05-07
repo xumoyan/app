@@ -2,11 +2,14 @@ import 'package:polka_module/service/index.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/roundedButton.dart';
 import 'package:polkawallet_ui/components/tapTooltip.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/button.dart';
+import 'package:polkawallet_ui/components/v3/index.dart' as v3;
 import 'package:polkawallet_ui/pages/scanPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
@@ -48,6 +51,8 @@ class _Contact extends State<ContactPage> {
   }
 
   Future<void> _onSave() async {
+    if (_submitting) return;
+
     if (_formKey.currentState.validate()) {
       setState(() {
         _submitting = true;
@@ -133,29 +138,12 @@ class _Contact extends State<ContactPage> {
   @override
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'profile');
-    List<Widget> action = <Widget>[
-      IconButton(
-        icon: SvgPicture.asset(
-          'assets/images/scan.svg',
-          color: Theme.of(context).cardColor,
-          width: 24,
-        ),
-        onPressed: () async {
-          final to = await Navigator.of(context).pushNamed(ScanPage.route);
-          if (to != null) {
-            setState(() {
-              _addressCtrl.text = (to as QRCodeResult).address.address;
-              _nameCtrl.text = (to as QRCodeResult).address.name;
-            });
-          }
-        },
-      )
-    ];
     return Scaffold(
       appBar: AppBar(
         title: Text(dic['contact']),
         centerTitle: true,
-        actions: _args == null ? action : null,
+        // actions: _args == null ? action : null,
+        leading: BackBtn(),
       ),
       body: SafeArea(
         child: Column(
@@ -164,14 +152,38 @@ class _Contact extends State<ContactPage> {
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: EdgeInsets.only(top: 8, bottom: 8),
+                  physics: BouncingScrollPhysics(),
                   children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(left: 16, right: 16),
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: dic['contact.address'],
+                    Container(
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      child: v3.TextInputWidget(
+                        decoration: v3.InputDecorationV3(
                           labelText: dic['contact.address'],
+                          labelStyle: Theme.of(context).textTheme.headline4,
+                          suffixIcon: _args != null
+                              ? null
+                              : GestureDetector(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        left: 12.w, top: 10, bottom: 10),
+                                    child: SvgPicture.asset(
+                                        'assets/images/scan.svg',
+                                        color: Theme.of(context).disabledColor),
+                                  ),
+                                  onTap: () async {
+                                    final to = await Navigator.of(context)
+                                        .pushNamed(ScanPage.route);
+                                    if (to != null) {
+                                      setState(() {
+                                        _addressCtrl.text = (to as QRCodeResult)
+                                            .address
+                                            .address;
+                                        _nameCtrl.text =
+                                            (to as QRCodeResult).address.name;
+                                      });
+                                    }
+                                  },
+                                ),
                         ),
                         controller: _addressCtrl,
                         validator: (v) {
@@ -184,33 +196,31 @@ class _Contact extends State<ContactPage> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(left: 16, right: 16),
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: dic['contact.name'],
-                          labelText: dic['contact.name'],
-                        ),
-                        controller: _nameCtrl,
-                        validator: (v) {
-                          return v.trim().length > 0
-                              ? null
-                              : dic['contact.name.error'];
-                        },
-                      ),
-                    ),
+                        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                        child: v3.TextInputWidget(
+                          decoration: v3.InputDecorationV3(
+                            labelText: dic['contact.name'],
+                            labelStyle: Theme.of(context).textTheme.headline4,
+                          ),
+                          controller: _nameCtrl,
+                          validator: (v) {
+                            return v.trim().length > 0
+                                ? null
+                                : dic['contact.name.error'];
+                          },
+                        )),
                     Padding(
-                      padding: EdgeInsets.only(left: 16, right: 16),
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: dic['contact.memo'],
-                          labelText: dic['contact.memo'],
-                        ),
-                        controller: _memoCtrl,
-                      ),
-                    ),
+                        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                        child: v3.TextInputWidget(
+                          decoration: v3.InputDecorationV3(
+                            labelText: dic['contact.memo'],
+                            labelStyle: Theme.of(context).textTheme.headline4,
+                          ),
+                          controller: _memoCtrl,
+                        )),
                     Row(
                       children: <Widget>[
-                        Checkbox(
+                        v3.Checkbox(
                           value: _isObservation,
                           onChanged: (v) {
                             setState(() {
@@ -229,8 +239,8 @@ class _Contact extends State<ContactPage> {
                         ),
                         TapTooltip(
                           child: Padding(
-                            padding: EdgeInsets.only(left: 8),
-                            child: Icon(Icons.info_outline, size: 16),
+                            padding: EdgeInsets.all(8.w),
+                            child: Icon(Icons.info_outline, size: 16.w),
                           ),
                           message: I18n.of(context).getDic(
                               i18n_full_dic_app, 'account')['observe.brief'],
@@ -242,12 +252,16 @@ class _Contact extends State<ContactPage> {
               ),
             ),
             Container(
-              margin: EdgeInsets.all(16),
-              child: RoundedButton(
-                submitting: _submitting,
-                text: dic['contact.save'],
-                onPressed: () => _onSave(),
-              ),
+              margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+              child: Button(
+                  submitting: _submitting,
+                  title: dic['contact.save'],
+                  onPressed: () => _onSave()),
+              // child: RoundedButton(
+              //   submitting: _submitting,
+              //   text: dic['contact.save'],
+              //   onPressed: () => _onSave(),
+              // ),
             ),
           ],
         ),

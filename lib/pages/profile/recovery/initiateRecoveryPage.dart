@@ -7,11 +7,12 @@ import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_ui/components/addressFormItem.dart';
 import 'package:polkawallet_ui/components/roundedButton.dart';
-import 'package:polkawallet_ui/components/txButton.dart';
+import 'package:polkawallet_ui/components/v3/txButton.dart';
 import 'package:polkawallet_ui/pages/accountListPage.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class InitiateRecoveryPage extends StatefulWidget {
   InitiateRecoveryPage(this.service);
@@ -121,9 +122,9 @@ class _InitiateRecoveryPage extends State<InitiateRecoveryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['recovery.init']),
-        centerTitle: true,
-      ),
+          title: Text(dic['recovery.init']),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
         child: Container(
           color: Theme.of(context).cardColor,
@@ -131,6 +132,7 @@ class _InitiateRecoveryPage extends State<InitiateRecoveryPage> {
             children: [
               Expanded(
                 child: ListView(
+                  physics: BouncingScrollPhysics(),
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),

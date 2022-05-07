@@ -8,7 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/apiKeyring.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/roundedButton.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/button.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 
 class CreateAccountPage extends StatefulWidget {
@@ -87,7 +88,12 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 24),
                 child: Text(
                   dic['create.warn9'],
-                  style: Theme.of(context).textTheme.headline4,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 18,
+                    fontFamily: 'TitilliumWeb',
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
               Text(dic['create.warn10']),
@@ -95,11 +101,18 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           ),
           actions: <Widget>[
             CupertinoButton(
-              child: Text(dicCommon['cancel']),
+              child: Text(
+                dicCommon['cancel'],
+                style:
+                    TextStyle(color: Theme.of(context).unselectedWidgetColor),
+              ),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             CupertinoButton(
-              child: Text(dicCommon['ok']),
+              child: Text(
+                dicCommon['ok'],
+                style: TextStyle(color: Colors.blueAccent),
+              ),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -125,35 +138,43 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
 
     return Scaffold(
-      appBar: AppBar(title: Text(dic['create']), centerTitle: true),
+      appBar: AppBar(
+          title: Text(dic['create']), centerTitle: true, leading: BackBtn()),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(
               child: ListView(
+                physics: BouncingScrollPhysics(),
                 padding: EdgeInsets.all(16),
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: Text(dic['create.warn1'], style: theme.headline4),
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text(dic['create.warn1'],
+                        style: theme.headline4
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                   Text(dic['create.warn2']),
                   Container(
-                    padding: EdgeInsets.only(bottom: 16, top: 32),
-                    child: Text(dic['create.warn3'], style: theme.headline4),
+                    padding: EdgeInsets.only(bottom: 10, top: 32),
+                    child: Text(dic['create.warn3'],
+                        style: theme.headline4
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                   Container(
-                    padding: EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(bottom: 5),
                     child: Text(dic['create.warn4']),
                   ),
                   Text(dic['create.warn5']),
                   Container(
-                    padding: EdgeInsets.only(bottom: 16, top: 32),
-                    child: Text(dic['create.warn6'], style: theme.headline4),
+                    padding: EdgeInsets.only(bottom: 10, top: 32),
+                    child: Text(dic['create.warn6'],
+                        style: theme.headline4
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                   Container(
-                    padding: EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(bottom: 5),
                     child: Text(dic['create.warn7']),
                   ),
                   Text(dic['create.warn8']),
@@ -162,8 +183,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
             Container(
               padding: EdgeInsets.all(16),
-              child: RoundedButton(
-                text:
+              child: Button(
+                title:
                     I18n.of(context).getDic(i18n_full_dic_ui, 'common')['next'],
                 onPressed: () => _onNext(),
               ),
@@ -183,9 +204,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       appBar: AppBar(
         title: Text(
             I18n.of(context).getDic(i18n_full_dic_app, 'account')['create']),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
-          onPressed: () {
+        leading: BackBtn(
+          onBack: () {
             setState(() {
               _step = 0;
             });

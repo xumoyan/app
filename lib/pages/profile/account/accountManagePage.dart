@@ -1,17 +1,24 @@
-import 'package:polka_module/pages/profile/account/signPage.dart';
-import 'package:biometric_storage/biometric_storage.dart';
 import 'package:polka_module/pages/profile/account/changeNamePage.dart';
 import 'package:polka_module/pages/profile/account/changePasswordPage.dart';
 import 'package:polka_module/pages/profile/account/exportAccountPage.dart';
+import 'package:polka_module/pages/profile/account/signPage.dart';
+import 'package:polka_module/pages/profile/index.dart';
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/utils/i18n/index.dart';
+import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/addressIcon.dart';
 import 'package:polkawallet_ui/components/passwordInputDialog.dart';
+import 'package:polkawallet_ui/components/v3/addressIcon.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/roundedCard.dart';
 import 'package:polkawallet_ui/utils/format.dart';
+import 'package:polkawallet_ui/utils/index.dart';
+import 'package:polkawallet_ui/components/v3/index.dart' as v3;
+import 'package:polkawallet_ui/pages/accountQrCodePage.dart';
 
 class AccountManagePage extends StatefulWidget {
   AccountManagePage(this.service);
@@ -72,10 +79,10 @@ class _AccountManagePageState extends State<AccountManagePage> {
       } catch (err) {
         print(err);
         // user may cancel the biometric auth. then we set biometric disabled
-        widget.service.account.setBiometricDisabled(pubKey);
+        widget.service.account.closeBiometricDisabled(pubKey);
       }
     } else {
-      widget.service.account.setBiometricDisabled(pubKey);
+      widget.service.account.closeBiometricDisabled(pubKey);
       result = enable;
     }
 
@@ -99,7 +106,8 @@ class _AccountManagePageState extends State<AccountManagePage> {
     final pubKey = widget.service.keyring.current.pubKey;
     final storeFile =
         await widget.service.account.getBiometricPassStoreFile(context, pubKey);
-    final isAuthorized = widget.service.account.getBiometricEnabled(pubKey);
+    final isAuthorized =
+        !widget.service.account.isCloseBiometricDisabled(pubKey);
     setState(() {
       _isBiometricAuthorized = isAuthorized;
       _authStorage = storeFile;
@@ -131,94 +139,131 @@ class _AccountManagePageState extends State<AccountManagePage> {
     final primaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['account']),
-        centerTitle: true,
-        elevation: 0.0,
-      ),
+          title: Text(dic['account']),
+          centerTitle: true,
+          elevation: 0.0,
+          leading: BackBtn()),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: <Widget>[
-                  Container(
-                    color: primaryColor,
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      leading: AddressIcon(
-                        acc.address,
-                        svg: acc.icon,
-                      ),
-                      title: Text(acc.name ?? 'name',
-                          style: TextStyle(fontSize: 16, color: Colors.white)),
-                      subtitle: Text(
-                        Fmt.address(acc.address) ?? '',
-                        style: TextStyle(fontSize: 16, color: Colors.white70),
-                      ),
-                    ),
-                  ),
-                  Container(padding: EdgeInsets.only(top: 16)),
-                  ListTile(
-                    title: Text(dic['name.change']),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: () async {
-                      await Navigator.pushNamed(context, ChangeNamePage.route);
-                      setState(() {});
-                    },
-                  ),
-                  ListTile(
-                    title: Text(dic['pass.change']),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: () => _onChangePass(),
-                  ),
-                  ListTile(
-                    title: Text(dic['sign']),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(SignMessagePage.route);
-                    },
-                  ),
-                  ListTile(
-                    title: Text(dic['export']),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(ExportAccountPage.route),
-                  ),
-                  _supportBiometric
-                      ? ListTile(
-                          title: Text(I18n.of(context).getDic(i18n_full_dic_app,
-                              'account')['unlock.bio.enable']),
-                          trailing: CupertinoSwitch(
-                            value: _isBiometricAuthorized,
-                            onChanged: (v) {
-                              if (v != _isBiometricAuthorized) {
-                                _updateBiometricAuth(v);
-                              }
-                            },
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: Column(
+                  children: [
+                    AddressIcon(acc.address, svg: acc.icon, size: 60.w),
+                    Text(UI.accountName(context, acc),
+                        style: TextStyle(
+                            color: Color(0xFF565554),
+                            fontSize: 20,
+                            fontFamily: 'TitilliumWeb',
+                            fontWeight: FontWeight.w600)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          Fmt.address(acc.address) ?? '',
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).unselectedWidgetColor),
+                        ),
+                        GestureDetector(
+                          child: Container(
+                            padding: EdgeInsets.fromLTRB(4.w, 2.h, 8.w, 0),
+                            child: SvgPicture.asset(
+                              'assets/images/qr.svg',
+                              color: Theme.of(context).toggleableActiveColor,
+                              width: 24.w,
+                            ),
                           ),
+                          onTap: () => Navigator.pushNamed(
+                              context, AccountQrCodePage.route),
                         )
-                      : Container(),
-                ],
-              ),
-            ),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextButton(
-                    style: ButtonStyle(
-                        padding: MaterialStateProperty.all(EdgeInsets.all(16)),
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.white)),
-                    child: Text(
-                      dic['delete'],
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onPressed: () => _onDeleteAccount(context),
-                  ),
+                      ],
+                    )
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+              RoundedCard(
+                margin: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                padding: EdgeInsets.fromLTRB(8.w, 16.h, 8.w, 16.h),
+                child: Column(
+                  children: [
+                    SettingsPageListItem(
+                      label: dic['name.change'],
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                            context, ChangeNamePage.route);
+                        setState(() {});
+                      },
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: dic['pass.change'],
+                      onTap: () => _onChangePass(),
+                    ),
+                  ],
+                ),
+              ),
+              RoundedCard(
+                margin: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                padding: EdgeInsets.fromLTRB(8.w, 16.h, 8.w, 16.h),
+                child: Column(
+                  children: [
+                    SettingsPageListItem(
+                      label: dic['sign'],
+                      onTap: () {
+                        Navigator.of(context).pushNamed(SignMessagePage.route);
+                      },
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: dic['export'],
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(ExportAccountPage.route),
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: I18n.of(context).getDic(
+                          i18n_full_dic_app, 'account')['unlock.bio.enable'],
+                      content: v3.CupertinoSwitch(
+                        value: _isBiometricAuthorized,
+                        onChanged: (v) {
+                          if (v != _isBiometricAuthorized) {
+                            _updateBiometricAuth(v);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              RoundedCard(
+                margin: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 16.h),
+                child: CupertinoButton(
+                  color: Theme.of(context).cardColor,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          dic['delete'],
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontFamily: 'TitilliumWeb',
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    ],
+                  ),
+                  onPressed: () => _onDeleteAccount(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

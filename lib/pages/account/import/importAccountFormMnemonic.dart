@@ -4,12 +4,15 @@ import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polkawallet_sdk/api/apiKeyring.dart';
 import 'package:polkawallet_sdk/api/types/addressIconData.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/addressFormItem.dart';
-import 'package:polkawallet_ui/components/roundedButton.dart';
+import 'package:polkawallet_ui/components/v3/Button.dart';
+import 'package:polkawallet_ui/components/v3/addressFormItem.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/textFormField.dart' as v3;
 import 'package:polkawallet_ui/utils/i18n.dart';
 
 import 'importAccountCreatePage.dart';
@@ -46,7 +49,8 @@ class _ImportAccountFormMnemonicState extends State<ImportAccountFormMnemonic> {
     selected = (ModalRoute.of(context).settings.arguments as Map)["type"];
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
     return Scaffold(
-        appBar: AppBar(title: Text(dic['import']), centerTitle: true),
+        appBar: AppBar(
+            title: Text(dic['import']), centerTitle: true, leading: BackBtn()),
         body: SafeArea(
           child: Observer(
               builder: (_) => Column(
@@ -55,56 +59,57 @@ class _ImportAccountFormMnemonicState extends State<ImportAccountFormMnemonic> {
                           child: Form(
                               key: _formKey,
                               child: SingleChildScrollView(
+                                  physics: BouncingScrollPhysics(),
                                   child: Column(
-                                children: [
-                                  Visibility(
-                                      visible: _addressIcon.svg != null,
-                                      child: Padding(
-                                          padding: EdgeInsets.only(
-                                              left: 16, right: 16, top: 16),
-                                          child: AddressFormItem(
-                                              KeyPairData()
-                                                ..icon = _addressIcon.svg
-                                                ..address =
-                                                    _addressIcon.address,
-                                              isShowSubtitle: false))),
-                                  ListTile(
-                                      title: Text(
-                                        dic['import.type'],
+                                    children: [
+                                      Visibility(
+                                          visible: _addressIcon.svg != null,
+                                          child: Padding(
+                                              padding: EdgeInsets.only(
+                                                  left: 16, right: 16),
+                                              child: AddressFormItem(
+                                                  KeyPairData()
+                                                    ..icon = _addressIcon.svg
+                                                    ..address =
+                                                        _addressIcon.address,
+                                                  isShowSubtitle: false))),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                            left: 16, right: 16, top: 8.h),
+                                        child: v3.TextInputWidget(
+                                          decoration: v3.InputDecorationV3(
+                                            labelText: dic[selected],
+                                          ),
+                                          controller: _keyCtrl,
+                                          maxLines: 3,
+                                          validator: _validateInput,
+                                          onChanged: _onKeyChange,
+                                        ),
                                       ),
-                                      trailing: Text(dic[selected])),
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.only(left: 16, right: 16),
-                                    child: TextFormField(
-                                      decoration: InputDecoration(
-                                        hintText: dic[selected],
-                                        labelText: dic[selected],
-                                      ),
-                                      controller: _keyCtrl,
-                                      maxLines: 2,
-                                      validator: _validateInput,
-                                      onChanged: _onKeyChange,
-                                    ),
-                                  ),
-                                  AccountAdvanceOption(
-                                    api: widget.service.plugin.sdk.api?.keyring,
-                                    seed: _keyCtrl.text.trim(),
-                                    onChange:
-                                        (AccountAdvanceOptionParams data) {
-                                      setState(() {
-                                        _advanceOptions = data;
-                                      });
+                                      Container(
+                                        margin: EdgeInsets.fromLTRB(
+                                            16.w, 16.h, 16.w, 16.h),
+                                        child: AccountAdvanceOption(
+                                          api: widget
+                                              .service.plugin.sdk.api?.keyring,
+                                          seed: _keyCtrl.text.trim(),
+                                          onChange: (AccountAdvanceOptionParams
+                                              data) {
+                                            setState(() {
+                                              _advanceOptions = data;
+                                            });
 
-                                      _refreshAccountAddress(_keyCtrl.text);
-                                    },
-                                  ),
-                                ],
-                              )))),
+                                            _refreshAccountAddress(
+                                                _keyCtrl.text);
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  )))),
                       Container(
                         padding: EdgeInsets.all(16),
-                        child: RoundedButton(
-                          text: I18n.of(context)
+                        child: Button(
+                          title: I18n.of(context)
                               .getDic(i18n_full_dic_ui, 'common')['next'],
                           onPressed: () async {
                             if (_formKey.currentState.validate() &&
@@ -159,13 +164,15 @@ class _ImportAccountFormMnemonicState extends State<ImportAccountFormMnemonic> {
         builder: (BuildContext context) {
           return CupertinoAlertDialog(
             title: Text(dic['import.warn']),
-            content: Text('${dic['import.invalid']} ${dic['mnemonic']}'),
+            content: Text(dic['mnemonic.msg']),
             actions: [
               CupertinoButton(
-                child: Text(
-                    I18n.of(context).getDic(i18n_full_dic_ui, 'common')['ok']),
+                child: Text(dic['mnemonic.btn']),
                 onPressed: () {
                   Navigator.of(context).pop();
+                  setState(() {
+                    _keyCtrl.text = "";
+                  });
                 },
               ),
             ],

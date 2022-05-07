@@ -11,11 +11,12 @@ import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/outlinedButtonSmall.dart';
 import 'package:polkawallet_ui/components/roundedButton.dart';
 import 'package:polkawallet_ui/components/tapTooltip.dart';
-import 'package:polkawallet_ui/components/txButton.dart';
+import 'package:polkawallet_ui/components/v3/txButton.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class CreateRecoveryPage extends StatefulWidget {
   CreateRecoveryPage(this.service);
@@ -180,9 +181,9 @@ ${dic['recovery.deposit.factor']} = ${Fmt.doubleFormat(_friendDepositFactor)} $s
         _configDepositBase + _friends.length * _friendDepositFactor;
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['recovery.create']),
-        centerTitle: true,
-      ),
+          title: Text(dic['recovery.create']),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
         child: Container(
           color: Theme.of(context).cardColor,
@@ -190,6 +191,7 @@ ${dic['recovery.deposit.factor']} = ${Fmt.doubleFormat(_friendDepositFactor)} $s
             children: [
               Expanded(
                 child: ListView(
+                  physics: BouncingScrollPhysics(),
                   children: [
                     ListTile(
                       title: Text(dic['recovery.friends']),

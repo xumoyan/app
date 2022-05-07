@@ -1,12 +1,12 @@
 import 'dart:convert';
-
+import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/txData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/txDetail.dart';
+import 'package:polkawallet_ui/components/v3/txDetail.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 
 class TxDetailPage extends StatelessWidget {
@@ -17,8 +17,8 @@ class TxDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'public');
-    final isKSMOrDOT = service.plugin.basic.name == 'kusama' ||
-        service.plugin.basic.name == 'polkadot';
+    final isKSMOrDOT = service.plugin.basic.name == relay_chain_name_ksm ||
+        service.plugin.basic.name == relay_chain_name_dot;
     final symbol = isKSMOrDOT
         ? service.plugin.networkState.tokenSymbol[0]
         : service.plugin.networkState.tokenSymbol ?? '';
@@ -49,10 +49,11 @@ class TxDetailPage extends StatelessWidget {
       }
       return TxDetailInfoItem(
         label: i['name'],
-        content: Text(value),
+        content: Text(value, style: Theme.of(context).textTheme.headline4),
       );
     }));
     return TxDetail(
+      current: service.keyring.current,
       networkName: service.plugin.basic.isTestNet
           ? '${service.plugin.basic.name}-testnet'
           : service.plugin.basic.name,

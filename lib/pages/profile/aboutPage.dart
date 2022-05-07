@@ -1,15 +1,17 @@
-import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/app.dart';
+import 'package:polka_module/pages/profile/index.dart';
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/service/walletApi.dart';
 import 'package:polka_module/utils/UI.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/jumpToBrowserLink.dart';
-import 'package:polkawallet_ui/components/roundedButton.dart';
-import 'package:polkawallet_ui/utils/format.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/roundedCard.dart';
+import 'package:polkawallet_ui/utils/index.dart';
 
 class AboutPage extends StatefulWidget {
   AboutPage(this.service);
@@ -23,17 +25,35 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPage extends State<AboutPage> {
-  bool _loading = false;
+  bool _updateLoading = false;
+  String _appVersion;
 
-  Future<void> _checkUpdate() async {
+  Future<void> _checkUpdate({bool autoCheck = false}) async {
+    if (_updateLoading) return;
+
     setState(() {
-      _loading = true;
+      _updateLoading = true;
     });
     final versions = await WalletApi.getLatestVersion();
     setState(() {
-      _loading = false;
+      _updateLoading = false;
     });
-    AppUI.checkUpdate(context, versions, widget.service.buildTarget);
+    AppUI.checkUpdate(context, versions, WalletApp.buildTarget,
+        autoCheck: autoCheck);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getAppVersion();
+    _checkUpdate(autoCheck: true);
+  }
+
+  _getAppVersion() async {
+    var appVersion = await Utils.getAppVersion();
+    setState(() {
+      _appVersion = appVersion;
+    });
   }
 
   @override
@@ -43,70 +63,90 @@ class _AboutPage extends State<AboutPage> {
         widget.service.store.storage,
         widget.service.plugin.basic.name,
         widget.service.plugin.basic.jsCodeVersion);
-    final githubLink = plugin_github_links[widget.service.plugin.basic.name];
+    final colorGray = Theme.of(context).unselectedWidgetColor;
+    final labelStyle = TextStyle(fontSize: 16);
+    final contentStyle = TextStyle(fontSize: 14, color: colorGray);
+
+    final pagePadding = 16.w;
     return Scaffold(
-      backgroundColor: Theme.of(context).cardColor,
       appBar: AppBar(
-        title: Text(dic['about']),
-        centerTitle: true,
-      ),
+          title: Text(dic['about.title']),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.all(48),
-              width: MediaQuery.of(context).size.width / 2,
-              child: Image.asset('assets/images/logo_about.png'),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  dic['about.brif'],
-                  style: Theme.of(context).textTheme.headline4,
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
+            children: <Widget>[
+              RoundedCard(
+                margin:
+                    EdgeInsets.fromLTRB(pagePadding, 4.h, pagePadding, 16.h),
+                padding: EdgeInsets.fromLTRB(8.w, 16.h, 8.w, 16.h),
+                child: Column(
+                  children: [
+                    SettingsPageListItem(
+                      label: dic['about.terms'],
+                      onTap: () => UI.launchURL(
+                          'https://polkawallet.io/terms-conditions.html'),
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: dic['about.privacy'],
+                      onTap: () => UI.launchURL(
+                          'https://github.com/polkawallet-io/app/blob/master/privacy-policy.md'),
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: 'Github',
+                      onTap: () => UI.launchURL(
+                          'https://github.com/polkawallet-io/app/issues'),
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: dic['about.feedback'],
+                      content:
+                          Text("hello@polkawallet.io", style: contentStyle),
+                      onTap: () => UI.launchURL('mailto:hello@polkawallet.io'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: JumpToBrowserLink('https://polkawallet.io'),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(right: 4),
-                  child:
-                      SvgPicture.asset('assets/images/public/github_logo.svg'),
+              RoundedCard(
+                margin:
+                    EdgeInsets.fromLTRB(pagePadding, 8.h, pagePadding, 16.h),
+                padding: EdgeInsets.fromLTRB(8.w, 16.h, 8.w, 16.h),
+                child: Column(
+                  children: [
+                    SettingsPageListItem(
+                      label: dic['about.version'],
+                      content: Row(
+                        children: [
+                          Visibility(
+                            visible: _updateLoading,
+                            child: Container(
+                              padding: EdgeInsets.only(right: 8.w),
+                              child: CupertinoActivityIndicator(radius: 8.r),
+                            ),
+                          ),
+                          Text(_appVersion ?? "", style: contentStyle)
+                        ],
+                      ),
+                      onTap: _checkUpdate,
+                    ),
+                    Divider(height: 24.h),
+                    SettingsPageListItem(
+                      label: 'API',
+                      content: Container(
+                        padding: EdgeInsets.only(right: 8.w),
+                        child: Text(currentJSVersion.toString(),
+                            style: contentStyle),
+                      ),
+                    ),
+                  ],
                 ),
-                JumpToBrowserLink(
-                  githubLink,
-                  text: Fmt.address(githubLink, pad: 16),
-                ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: Text('${dic['about.version']}: $app_beta_version'),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Text('API: $currentJSVersion'),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: RoundedButton(
-                text: dic['update'],
-                onPressed: () {
-                  _checkUpdate();
-                },
-                submitting: _loading,
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );

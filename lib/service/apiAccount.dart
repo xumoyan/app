@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/index.dart';
-import 'package:polka_module/service/walletApi.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -77,9 +76,23 @@ class ApiAccount {
         '$_biometricEnabledKey$pubKey', DateTime.now().millisecondsSinceEpoch);
   }
 
-  void setBiometricDisabled(String pubKey) {
-    apiRoot.store.storage.write('$_biometricEnabledKey$pubKey',
-        DateTime.now().millisecondsSinceEpoch - SECONDS_OF_DAY * 7000);
+  // void setBiometricDisabled(String pubKey) {
+  //   apiRoot.store.storage.write('$_biometricEnabledKey$pubKey',
+  //       DateTime.now().millisecondsSinceEpoch - SECONDS_OF_DAY * 7000);
+  // }
+
+  // Actively turn off the function and will not be automatically unlocked again
+  void closeBiometricDisabled(String pubKey) {
+    apiRoot.store.storage.write('$_biometricEnabledKey$pubKey', 0);
+  }
+
+  bool isCloseBiometricDisabled(String pubKey) {
+    final timestamp =
+        apiRoot.store.storage.read('$_biometricEnabledKey$pubKey');
+    if (timestamp == null || timestamp == 0) {
+      return true;
+    }
+    return false;
   }
 
   bool getBiometricEnabled(String pubKey) {
@@ -116,12 +129,12 @@ class ApiAccount {
     final response = await BiometricStorage().canAuthenticate();
 
     final supportBiometric = response == CanAuthenticateResponse.success;
-    final isBiometricAuthorized = getBiometricEnabled(pubKey);
     if (supportBiometric) {
-      final authStorage = await getBiometricPassStoreFile(context, pubKey);
+      final isBiometricAuthorized = getBiometricEnabled(pubKey);
       // we prompt biometric auth here if device supported
       // and user authorized to use biometric.
       if (isBiometricAuthorized) {
+        final authStorage = await getBiometricPassStoreFile(context, pubKey);
         try {
           final result = await authStorage.read();
           print('read password from authStorage: $result');
@@ -130,15 +143,38 @@ class ApiAccount {
           }
         } catch (err) {
           print(err);
-          // Navigator.of(context).pop();
+          return "can't";
         }
       }
+    } else {
+      return "can't";
     }
     return null;
   }
 
   Future<String> getPassword(BuildContext context, KeyPairData acc) async {
     final bioPass = await getPasswordWithBiometricAuth(context, acc.pubKey);
+    final isClose = isCloseBiometricDisabled(acc.pubKey);
+    if (bioPass == null && !isClose) {
+      await showCupertinoDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: Text(
+                I18n.of(context).getDic(i18n_full_dic_app, 'assets')['note']),
+            content: Text(I18n.of(context)
+                .getDic(i18n_full_dic_app, 'account')['biometric.msg']),
+            actions: <Widget>[
+              CupertinoButton(
+                child: Text(
+                    I18n.of(context).getDic(i18n_full_dic_ui, 'common')['ok']),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    }
     final password = await showCupertinoDialog(
       context: context,
       builder: (_) {
@@ -147,10 +183,13 @@ class ApiAccount {
           title: Text(
               I18n.of(context).getDic(i18n_full_dic_app, 'account')['unlock']),
           account: acc,
-          userPass: bioPass,
+          userPass: bioPass == "can't" ? null : bioPass,
         );
       },
     );
+    if (bioPass == null && !isClose && password != null) {
+      setBiometricEnabled(acc.pubKey);
+    }
     return password;
   }
 
@@ -167,34 +206,11 @@ class ApiAccount {
   Future<RecoveryInfo> queryRecoverable(String address) async {
 //    address = "J4sW13h2HNerfxTzPGpLT66B3HVvuU32S6upxwSeFJQnAzg";
     final res = await apiRoot.plugin.sdk.api.recovery.queryRecoverable(address);
+    apiRoot.store.account.setAccountRecoveryInfo(res);
 
     if (res != null && res.friends.length > 0) {
       queryAddressIcons(res.friends);
     }
     return res;
-  }
-
-  Future<void> checkBannerStatus(String pubKey) async {
-    final adClosed =
-        apiRoot.store.storage.read('${show_banner_status_key}_$pubKey');
-    // check if banner was closed by user.
-    if (adClosed != null) {
-      apiRoot.store.account.setBannerVisible(false);
-    } else {
-      apiRoot.store.account.setBannerVisible(true);
-    }
-  }
-
-  Future<Map> postKarCrowdLoan(String address, BigInt amount, String email,
-      bool receiveEmail, String referral, String signature, String endpoint,
-      {bool isProxy = false}) async {
-    final submitted = await WalletApi.postKarCrowdLoan(
-        address, amount, email, receiveEmail, referral, signature, endpoint,
-        isProxy: isProxy);
-    print(submitted);
-    if (submitted != null && (submitted['result'] ?? false)) {
-      apiRoot.store.account.setBannerVisible(false);
-    }
-    return submitted;
   }
 }

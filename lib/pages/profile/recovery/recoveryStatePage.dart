@@ -11,10 +11,11 @@ import 'package:polkawallet_sdk/api/types/txData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/borderedTitle.dart';
 import 'package:polkawallet_ui/components/roundedButton.dart';
-import 'package:polkawallet_ui/components/txButton.dart';
+import 'package:polkawallet_ui/components/v3/txButton.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class RecoveryStatePage extends StatefulWidget {
   RecoveryStatePage(this.service);
@@ -149,9 +150,9 @@ class _RecoveryStatePage extends State<RecoveryStatePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['recovery.init']),
-        centerTitle: true,
-      ),
+          title: Text(dic['recovery.init']),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
         child: Container(
           color: Theme.of(context).cardColor,
@@ -169,6 +170,7 @@ class _RecoveryStatePage extends State<RecoveryStatePage> {
                   onRefresh: _fetchData,
                   key: _refreshKey,
                   child: ListView(
+                    physics: BouncingScrollPhysics(),
                     children: _txs.length > 0
                         ? activeList.map((e) {
                             final int createdBlock = e[1]['created'];

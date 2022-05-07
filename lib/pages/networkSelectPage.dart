@@ -1,17 +1,21 @@
+import 'package:polka_module/common/components/jumpToLink.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/common/types/pluginDisabled.dart';
-import 'package:polka_module/pages/account/createAccountEntryPage.dart';
-import 'package:polka_module/pages/public/karCrowdLoanPage.dart';
+import 'package:polka_module/pages/account/create/createAccountPage.dart';
+import 'package:polka_module/pages/account/import/selectImportTypePage.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:polkawallet_sdk/plugin/index.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/addressIcon.dart';
-import 'package:polkawallet_ui/components/roundedCard.dart';
+import 'package:polkawallet_ui/components/v3/addressIcon.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
+import 'package:polkawallet_ui/components/v3/roundedCard.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
@@ -35,6 +39,8 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
   PluginDisabled _pluginDisabledSelected;
   PolkawalletPlugin _selectedNetwork;
   bool _networkChanging = false;
+
+  int _appVersionCode = 0;
 
   Future<void> _reloadNetwork() async {
     setState(() {
@@ -82,13 +88,14 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
     Navigator.of(context).pop(_selectedNetwork);
   }
 
-  Future<void> _onCreateAccount() async {
+  Future<void> _onCreateAccount(int step) async {
     bool isCurrentNetwork =
         _selectedNetwork.basic.name == widget.service.plugin.basic.name;
     if (!isCurrentNetwork) {
       await _reloadNetwork();
     }
-    Navigator.of(context).pushNamed(CreateAccountEntryPage.route);
+    Navigator.of(context).pushNamed(
+        step == 0 ? CreateAccountPage.route : SelectImportTypePage.route);
   }
 
   List<Widget> _buildAccountList() {
@@ -98,34 +105,72 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
     final List<Widget> res = [
       Text(
         name.toUpperCase(),
-        style: Theme.of(context).textTheme.headline4,
+        style: Theme.of(context).textTheme.headline3,
       ),
-      plugin_from_community.indexOf(name) > -1
-          ? _CommunityPluginNote(name, false)
-          : Container(),
-      GestureDetector(
-        child: RoundedCard(
-          margin: EdgeInsets.only(top: 8, bottom: 16),
-          padding: EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      Visibility(
+          visible: plugin_from_community.indexOf(name) > -1,
+          child: _CommunityPluginNote(name, false)),
+      Padding(
+          padding: EdgeInsets.only(bottom: 10.h),
+          child: Column(
             children: [
-              Icon(
-                Icons.add_circle_outline,
-                color: Theme.of(context).unselectedWidgetColor,
+              GestureDetector(
+                child: Container(
+                    width: double.infinity,
+                    child: RoundedCard(
+                        color: Color(0xFFEBEAE8),
+                        margin: EdgeInsets.only(top: 4.h, bottom: 16.h),
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 4.w),
+                              child: SvgPicture.asset(
+                                "assets/images/icon_add.svg",
+                                width: 16.h,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Text(
+                              dic['create'],
+                              style: Theme.of(context).textTheme.headline4,
+                            )
+                          ],
+                        ))),
+                onTap: () => _onCreateAccount(0),
               ),
-              Padding(
-                padding: EdgeInsets.only(left: 8),
-                child: Text(
-                  dic['add'],
-                  style: Theme.of(context).textTheme.headline4,
-                ),
+              Container(
+                width: 16.h,
+              ),
+              GestureDetector(
+                child: Container(
+                    width: double.infinity,
+                    child: RoundedCard(
+                        color: Color(0xFFEBEAE8),
+                        margin: EdgeInsets.only(bottom: 16.h),
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 4.w),
+                              child: SvgPicture.asset(
+                                "assets/images/icon_add.svg",
+                                width: 16.h,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Text(
+                              dic['import'],
+                              style: Theme.of(context).textTheme.headline4,
+                            )
+                          ],
+                        ))),
+                onTap: () => _onCreateAccount(1),
               )
             ],
-          ),
-        ),
-        onTap: () => _onCreateAccount(),
-      ),
+          )),
     ];
 
     /// first item is current account
@@ -148,28 +193,58 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
                 i.indexInfo['accountIndex'] != null
             ? '${i.indexInfo['accountIndex']}\n'
             : '';
-        final double padding = accIndex.isEmpty ? 0 : 7;
         final isCurrent = isCurrentNetwork &&
             i.address == widget.service.keyring.current.address;
-        return RoundedCard(
-          border: isCurrent
-              ? Border.all(color: Theme.of(context).primaryColorLight)
-              : Border.all(color: Theme.of(context).cardColor),
-          margin: EdgeInsets.only(bottom: 16),
-          padding: EdgeInsets.only(top: padding, bottom: padding),
-          child: ListTile(
-            leading: AddressIcon(address, svg: i.icon),
-            title: Text(UI.accountName(context, i)),
-            subtitle: Text('$accIndex${Fmt.address(address)}', maxLines: 2),
-            trailing: isCurrent
-                ? Icon(
-                    Icons.check_circle,
-                    color: Theme.of(context).primaryColor,
-                  )
-                : Container(width: 8),
-            onTap: _networkChanging ? null : () => _onSelect(i),
-          ),
+        return Column(
+          children: [
+            Container(
+              color: Colors.transparent,
+              child: ListTile(
+                dense: true,
+                leading: AddressIcon(address, svg: i.icon),
+                title: Text(
+                  UI.accountName(context, i),
+                  style: Theme.of(context).textTheme.headline5,
+                ),
+                subtitle: Text('$accIndex${Fmt.address(address)}',
+                    maxLines: 2,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w300,
+                        color: Color(0xFF565554),
+                        fontFamily: "SF_Pro")),
+                trailing: Image.asset(
+                  "assets/images/${isCurrent ? "icon_circle_select.png" : "icon_circle_unselect.png"}",
+                  fit: BoxFit.contain,
+                  width: 16.w,
+                ),
+                onTap: _networkChanging ? null : () => _onSelect(i),
+              ),
+            ),
+            Divider(
+              height: 1,
+            )
+          ],
         );
+        // return RoundedCard(
+        //   border: isCurrent
+        //       ? Border.all(color: Theme.of(context).primaryColorLight)
+        //       : Border.all(color: Theme.of(context).cardColor),
+        //   margin: EdgeInsets.only(bottom: 16),
+        //   padding: EdgeInsets.only(top: padding, bottom: padding),
+        //   child: ListTile(
+        //     leading: AddressIcon(address, svg: i.icon),
+        //     title: Text(UI.accountName(context, i)),
+        //     subtitle: Text('$accIndex${Fmt.address(address)}', maxLines: 2),
+        //     trailing: isCurrent
+        //         ? Icon(
+        //             Icons.check_circle,
+        //             color: Theme.of(context).primaryColor,
+        //           )
+        //         : Container(width: 8),
+        //     onTap: _networkChanging ? null : () => _onSelect(i),
+        //   ),
+        // );
       }).toList());
     }
     return res;
@@ -179,7 +254,7 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
     return [
       Text(
         _pluginDisabledSelected.name.toUpperCase(),
-        style: Theme.of(context).textTheme.headline4,
+        style: Theme.of(context).textTheme.headline3,
       ),
       _CommunityPluginNote(_pluginDisabledSelected.name, true),
     ];
@@ -189,95 +264,129 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var appVersionCode = await Utils.getBuildNumber();
       setState(() {
         _selectedNetwork = widget.service.plugin;
+        _appVersionCode = appVersionCode;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final plugins = widget.plugins.toList();
+    final config = widget.service.store.settings.pluginsConfig;
+    if (config != null) {
+      plugins.removeWhere((i) {
+        final List disabled = (config[i.basic.name] ?? {})['disabled'];
+        if (disabled != null) {
+          return disabled.contains(_appVersionCode) || disabled.contains(0);
+        }
+        return false;
+      });
+    }
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(I18n.of(context)
-            .getDic(i18n_full_dic_app, 'profile')['setting.network']),
-        centerTitle: true,
-      ),
+          title: Text(I18n.of(context)
+              .getDic(i18n_full_dic_app, 'profile')['setting.network']),
+          centerTitle: true,
+          leading: BackBtn(),
+          elevation: 2),
       body: Row(
         children: <Widget>[
           // left side bar
-          Stack(
-            children: [
-              Container(
-                width: 56,
-                // color: Theme.of(context).cardColor,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey[100],
-                      blurRadius: 24.0,
-                      spreadRadius: 0,
-                    )
-                  ],
-                ),
-              ),
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...widget.plugins.map((e) {
-                      final isCurrent =
-                          e.basic.name == _selectedNetwork?.basic?.name;
-                      return isCurrent
-                          ? _NetworkItemActive(icon: e.basic.icon)
-                          : Container(
-                              margin: EdgeInsets.all(8),
-                              child: IconButton(
-                                padding: EdgeInsets.all(8),
-                                icon: isCurrent
-                                    ? e.basic.icon
-                                    : e.basic.iconDisabled,
-                                onPressed: () {
-                                  if (!isCurrent) {
-                                    setState(() {
-                                      _selectedNetwork = e;
-                                      _pluginDisabledSelected = null;
-                                    });
-                                  }
-                                },
+          Padding(
+              padding: EdgeInsets.only(top: 20.h),
+              child: Stack(
+                children: [
+                  Container(
+                    width: 54.w,
+                    // color: Theme.of(context).cardColor,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF3F1ED),
+                      borderRadius:
+                          BorderRadius.only(topRight: Radius.circular(24.w)),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Color(0x33000000),
+                            blurRadius: 3.0,
+                            spreadRadius: 1.0,
+                            offset: Offset(2.0, 2.0))
+                      ],
+                    ),
+                  ),
+                  Padding(
+                      padding: EdgeInsets.only(top: 16.h, bottom: 10.h),
+                      child: SingleChildScrollView(
+                          physics: BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(left: 12.w, right: 8.w),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.asset(
+                                      'assets/images/logo_text_line2.png',
+                                      width: 32.w,
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          top: 8.h, bottom: 8.h),
+                                      height: 4.h,
+                                      width: 34.w,
+                                      decoration: BoxDecoration(
+                                          border: Border.symmetric(
+                                              horizontal: BorderSide(
+                                                  color: Color(0xFFCCCAC6)))),
+                                    )
+                                  ],
+                                ),
                               ),
-                            );
-                    }).toList(),
-                    ...widget.disabledPlugins.map((e) {
-                      final isCurrent = e.name == _pluginDisabledSelected?.name;
-                      return isCurrent
-                          ? _NetworkItemActive(icon: e.icon)
-                          : Container(
-                              margin: EdgeInsets.all(8),
-                              child: IconButton(
-                                padding: EdgeInsets.all(8),
-                                icon: e.icon,
-                                onPressed: () {
-                                  if (_pluginDisabledSelected?.name != e.name) {
-                                    setState(() {
-                                      _pluginDisabledSelected = e;
-                                      _selectedNetwork = null;
-                                    });
-                                  }
-                                },
-                              ),
-                            );
-                    }).toList()
-                  ],
-                  // children: sideBar,
-                ),
-              )
-            ],
-          ),
+                              ...widget.plugins.map((e) {
+                                final isCurrent = e.basic.name ==
+                                    _selectedNetwork?.basic?.name;
+                                return isCurrent
+                                    ? _NetworkItemActive(icon: e.basic.icon)
+                                    : netWorkItem(() {
+                                        if (!isCurrent) {
+                                          setState(() {
+                                            _selectedNetwork = e;
+                                            _pluginDisabledSelected = null;
+                                          });
+                                        }
+                                      },
+                                        isCurrent
+                                            ? e.basic.icon
+                                            : Image.asset(
+                                                'assets/images/plugins/logo_${e.basic.name.toLowerCase()}_grey.png'));
+                              }).toList(),
+                              ...widget.disabledPlugins.map((e) {
+                                final isCurrent =
+                                    e.name == _pluginDisabledSelected?.name;
+                                return isCurrent
+                                    ? _NetworkItemActive(icon: e.icon)
+                                    : netWorkItem(() {
+                                        if (_pluginDisabledSelected?.name !=
+                                            e.name) {
+                                          setState(() {
+                                            _pluginDisabledSelected = e;
+                                            _selectedNetwork = null;
+                                          });
+                                        }
+                                      }, e.icon);
+                              }).toList()
+                            ],
+                            // children: sideBar,
+                          ))),
+                ],
+              )),
           Expanded(
             child: ListView(
+              physics: BouncingScrollPhysics(),
               padding: EdgeInsets.all(16),
               children: _pluginDisabledSelected == null
                   ? _buildAccountList()
@@ -287,6 +396,25 @@ class _NetworkSelectPageState extends State<NetworkSelectPage> {
         ],
       ),
     );
+  }
+
+  Widget netWorkItem(Function() onTap, Widget icon) {
+    return Container(
+        margin: EdgeInsets.only(left: 6.w),
+        width: 48.w,
+        height: 64.h,
+        child: Center(
+          child: GestureDetector(
+              onTap: onTap,
+              child: Container(
+                  padding: EdgeInsets.fromLTRB(6, 6, 10, 10),
+                  child: SizedBox(child: icon, height: 22, width: 22),
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage(
+                              "assets/images/selectWallet_unselect.png"),
+                          fit: BoxFit.fill)))),
+        ));
   }
 }
 
@@ -300,37 +428,19 @@ class _NetworkItemActive extends StatelessWidget {
       alignment: AlignmentDirectional.centerEnd,
       children: [
         Padding(
-          padding: EdgeInsets.only(right: 8),
-          child: SvgPicture.asset(
-            'assets/images/network_icon_bg.svg',
-            color: Colors.grey[100],
-            width: 56,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(right: 44),
-          child: SvgPicture.asset(
-            'assets/images/network_icon_border.svg',
-            color: Theme.of(context).primaryColor,
-            width: 10,
-          ),
-        ),
+            padding: EdgeInsets.only(left: 10),
+            child: Image.asset(
+              "assets/images/selectWallet_select_bg.png",
+              fit: BoxFit.contain,
+              width: 51.w,
+            )),
         Container(
-          padding: EdgeInsets.all(8),
-          child: SizedBox(child: icon, height: 28, width: 28),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(const Radius.circular(24)),
-            color: Theme.of(context).cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 12.0,
-                spreadRadius: 0,
-                offset: Offset(6.0, 1.0),
-              )
-            ],
-          ),
-        )
+            padding: EdgeInsets.all(12),
+            child: SizedBox(child: icon, height: 26, width: 26),
+            decoration: BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage("assets/images/selectWallet_select.png"),
+                    fit: BoxFit.fill)))
       ],
     );
   }
@@ -356,9 +466,12 @@ class _CommunityPluginNote extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                  child: Text(dic['plugin.note'] +
-                      pluginName.toUpperCase() +
-                      dic['plugin.team'])),
+                  child: Text(
+                dic['plugin.note'] +
+                    pluginName.toUpperCase() +
+                    dic['plugin.team'],
+                style: TextStyle(fontSize: 12),
+              )),
               SvgPicture.asset('assets/images/public/github_logo.svg',
                   width: 16),
               JumpToLink(
@@ -367,8 +480,8 @@ class _CommunityPluginNote extends StatelessWidget {
               )
             ],
           ),
-          disabled ? Divider() : Container(),
-          disabled ? Text(dic['plugin.disable']) : Container(),
+          Visibility(visible: disabled, child: Divider(height: 1)),
+          Visibility(visible: disabled, child: Text(dic['plugin.disable'])),
         ],
       ),
     );

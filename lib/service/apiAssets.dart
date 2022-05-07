@@ -31,33 +31,27 @@ class ApiAssets {
     return res;
   }
 
-  Future<void> fetchMarketPriceFromSubScan() async {
-    if (apiRoot.plugin.basic.isTestNet) return;
-
-    final res =
-        await WalletApi.getTokenPriceFromSubScan(apiRoot.plugin.basic.name);
-    if (res == null || res['data'] == null) {
-      print('fetch market price failed');
-      return;
-    }
-    final symbol = res['data']['token'][0];
-    apiRoot.store.assets.setMarketPrices(
-        {symbol: double.parse(res['data']['detail'][symbol]['price'])});
-  }
-
-  Future<void> fetchMarketPrices(List<String> tokens) async {
-    final List res = await Future.wait(
-        tokens.map((e) => WalletApi.getTokenPrice(e)).toList());
-
+  Future<void> fetchMarketPrices() async {
+    final res = await Future.wait([
+      WalletApi.getTokenPrices(),
+      WalletApi.getTokenPriceFromSubScan(apiRoot.plugin.basic.name)
+    ]);
     final Map<String, double> prices = {
       'KUSD': 1.0,
       'AUSD': 1.0,
+      'USDT': 1.0,
     };
-    res.forEach((e) {
-      if (e != null && e['price'] != null) {
-        prices[e['token']] = double.parse(e['price']);
-      }
-    });
+    if (res[1]['data'] != null) {
+      final tokenData = res[1]['data']['detail'] as Map;
+      prices.addAll({
+        tokenData.keys.toList()[0]:
+            double.tryParse(tokenData.values.toList()[0]['price'].toString())
+      });
+    }
+    if (res[0]['prices'] != null) {
+      prices.addAll(Map<String, double>.from(res[0]['prices']));
+    }
+
     apiRoot.store.assets.setMarketPrices(prices);
   }
 }

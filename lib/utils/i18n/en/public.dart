@@ -45,4 +45,31 @@ const Map<String, String> enPublic = {
   'auction.coming': 'Coming Soon...',
   'balance.insufficient': 'Insufficient balance',
   'tx.action': 'Action',
+  'v3.metahub': 'Metahub',
+  'hub.cover.nft':
+      'A gallery where you can easily store, display and manage your non-fungible tokens by category. Grow and showcase your collection, be recognized as a pioneer within the ecosystem. Transferring NFTs is available now.',
+  'hub.cover.governance':
+      'Taking a phased approach to employ various governance mechanisms that will allow it to progressively decentralize and ultimately be commanded by the majority of network stakeholders. The framework employs a Referenda chamber, a General Council, and a Technical Committee.',
+  'hub.cover.staking':
+      'Staking uses NPoS as its consensus mechanism. The system encourages certain token holders to participate as nominators. You can nominate validators that you trust to help you earn rewards in the chain’s native token.',
+  'hub.cover.parachains':
+      'Provide users with an aggregated module of Crowdloan and Auction. Users can participate in different events in this module, and track the follow-up of the crowdloan.',
+  'hub.enter': 'Enter',
+  'wss.timeout': 'Connection timeout.\nTry changing node later.',
+  'banner.invalid': 'Invalid Page',
+  'banner.invalid.info': 'You need to update to the latest version, continue?',
+  'os.invalid':
+      'The OS environment of this device does NOT support Polkawallet running',
+  'event.0415.1':
+      'The 1 million aUSD Tsunami liquidity program is about to begin on Karura!!',
+  'event.0415.2': 'Following the steps to participate:',
+  'event.0415.3': 'Send KSM to Karura\'s parachain.',
+  'event.0415.4': 'Join the liquid staking and mint LKSM.',
+  'event.0415.5': 'Currently 19.92% LKSM Staking APY (rewards in KSM)',
+  'event.0415.6': 'Stake your LKSM and earn rewards!',
+  'event.0415.7':
+      'Earn another potential 10% APY on your KSM staking in aUSD rewards',
+  'event.0415.8': 'Cross-Chain Transfer',
+  'event.0415.9': 'Go Liquid Staking',
+  'event.0415.10': 'Join Collateral Staking',
 };

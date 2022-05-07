@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/api/types/walletConnect/pairingData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class WCPairingConfirmPage extends StatefulWidget {
   const WCPairingConfirmPage(this.service);
@@ -27,15 +28,16 @@ class _WCPairingConfirmPageState extends State<WCPairingConfirmPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            Image.asset('assets/images/wallet_connect_banner.png', height: 24),
-        centerTitle: true,
-      ),
+          title: Image.asset('assets/images/wallet_connect_banner.png',
+              height: 24),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
         child: Column(
           children: <Widget>[
             Expanded(
-              child: ListView(children: <Widget>[
+              child:
+                  ListView(physics: BouncingScrollPhysics(), children: <Widget>[
                 Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(

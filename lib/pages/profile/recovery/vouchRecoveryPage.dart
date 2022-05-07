@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/roundedButton.dart';
-import 'package:polkawallet_ui/components/txButton.dart';
+import 'package:polkawallet_ui/components/v3/txButton.dart';
 import 'package:polkawallet_ui/pages/accountListPage.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class VouchRecoveryPage extends StatefulWidget {
   VouchRecoveryPage(this.service);
@@ -116,9 +117,9 @@ class _VouchRecoveryPage extends State<VouchRecoveryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dic['recovery.help']),
-        centerTitle: true,
-      ),
+          title: Text(dic['recovery.help']),
+          centerTitle: true,
+          leading: BackBtn()),
       body: SafeArea(
         child: Container(
           color: Theme.of(context).cardColor,
@@ -126,6 +127,7 @@ class _VouchRecoveryPage extends State<VouchRecoveryPage> {
             children: [
               Expanded(
                 child: ListView(
+                  physics: BouncingScrollPhysics(),
                   padding: EdgeInsets.only(left: 16, right: 16),
                   children: [
                     TextFormField(

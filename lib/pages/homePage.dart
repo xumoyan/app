@@ -1,33 +1,39 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/pages/assets/index.dart';
+import 'package:polka_module/pages/pluginPage.dart';
 import 'package:polka_module/pages/profile/index.dart';
 import 'package:polka_module/pages/walletConnect/wcSessionsPage.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/BottomNavigationBar.dart';
+import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:jpush_flutter/jpush_flutter.dart';
-import 'package:polkawallet_plugin_kusama/common/constants.dart';
 import 'package:polkawallet_sdk/api/types/networkParams.dart';
 import 'package:polkawallet_sdk/plugin/homeNavItem.dart';
 import 'package:polkawallet_sdk/plugin/index.dart';
+import 'package:polkawallet_sdk/utils/app.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/plugin/metaHubPage.dart';
+import 'package:polkawallet_ui/components/v3/plugin/pluginItemCard.dart';
 import 'package:polkawallet_ui/ui.dart';
-import 'package:polkawallet_ui/utils/i18n.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage(this.service, this.connectedNode, this.checkJSCodeUpdate,
-      this.switchNetwork);
+  HomePage(this.service, this.plugins, this.connectedNode,
+      this.checkJSCodeUpdate, this.switchNetwork, this.changeNode);
 
   final AppService service;
   final NetworkParams connectedNode;
   final Future<void> Function(BuildContext, PolkawalletPlugin,
       {bool needReload}) checkJSCodeUpdate;
-  final Future<void> Function(String) switchNetwork;
+  final Future<void> Function(String,
+      {NetworkParams node, PageRouteParams pageRoute}) switchNetwork;
+
+  final List<PolkawalletPlugin> plugins;
+  final Future<void> Function(NetworkParams) changeNode;
 
   static final String route = '/';
 
@@ -40,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   // final _jPush = JPush();
 
   int _tabIndex = 0;
+  Timer _wssNotifyTimer;
 
   Future<void> _handleWalletConnect(String uri) async {
     print('wallet connect uri:');
@@ -85,6 +92,8 @@ class _HomePageState extends State<HomePage> {
     final tab = params['tab'];
     if (network != null && network != widget.service.plugin.basic.name) {
       Navigator.popUntil(context, ModalRoute.withName('/'));
+
+      _setupWssNotifyTimer();
       await widget.switchNetwork(network);
     }
     if (tab != null) {
@@ -101,92 +110,233 @@ class _HomePageState extends State<HomePage> {
     // }
   }
 
-  List<BottomNavigationBarItem> _buildNavItems(List<HomeNavItem> items) {
-    return items.map((e) {
-      final active = items[_tabIndex].text == e.text;
-      return BottomNavigationBarItem(
-        icon: Container(
-          padding: EdgeInsets.all(active ? 0 : 2),
-          child: active ? e.iconActive : e.icon,
-          width: 32,
-          height: 32,
-        ),
-        label: e.text,
-      );
-    }).toList();
+  Future<void> _setupWssNotifyTimer() async {
+    if (_wssNotifyTimer != null) {
+      _wssNotifyTimer.cancel();
+    }
+
+    _wssNotifyTimer = Timer(Duration(seconds: 60), () {
+      if (mounted && widget.connectedNode == null) {
+        showCupertinoDialog(
+            context: context,
+            builder: (_) {
+              return CupertinoAlertDialog(
+                content: Text(I18n.of(context)
+                    .getDic(i18n_full_dic_app, 'public')['wss.timeout']),
+              );
+            });
+        Timer(Duration(seconds: 5), () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+      _wssNotifyTimer = null;
+    });
   }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.service.account
-          .checkBannerStatus(widget.service.keyring.current.pubKey);
-
-      // _setupJPush();
+      _setupWssNotifyTimer();
     });
+  }
+
+  List<Color> getMetaHubColors() {
+    switch (widget.service.plugin.basic.name) {
+      case para_chain_name_karura:
+        return [Color(0xFFE40C5B), Color(0xFFFF4C3B)];
+      case para_chain_name_acala:
+        return [Color(0xFFFF2B1B), Color(0xFF665AFF)];
+      case relay_chain_name_dot:
+        return [Color(0xFFE91384), Color(0xFFB6238C)];
+      case relay_chain_name_ksm:
+        return [Color(0xFFFFFFFF), Color(0x9EFFFFFF)];
+      case chain_name_edgeware:
+        return [Color(0xFF21C1D5), Color(0xFF057AA9)];
+      case chain_name_dbc:
+        return [Color(0xFF5BC1D3), Color(0xFF374BD4)];
+      default:
+        return [Theme.of(context).primaryColor, Theme.of(context).hoverColor];
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dic = I18n.of(context).getDic(i18n_full_dic_ui, 'common');
     final List<HomeNavItem> pages = [
       HomeNavItem(
-        text: dic['assets'],
-        icon: SvgPicture.asset(
-          'assets/images/nav_assets.svg',
-          color: Theme.of(context).disabledColor,
+        text: I18n.of(context).getDic(i18n_full_dic_app, 'assets')['assets'],
+        icon: Image.asset(
+          "assets/images/icon_assets_nor.png",
+          fit: BoxFit.contain,
         ),
-        iconActive: SvgPicture.asset(
-          'assets/images/nav_assets.svg',
-          color: Theme.of(context).primaryColor,
+        iconActive: Image.asset(
+          "assets/images/icon_assets_sel.png",
+          fit: BoxFit.contain,
         ),
-        content: AssetsPage(
-            widget.service,
-            widget.connectedNode,
-            (PolkawalletPlugin plugin) =>
-                widget.checkJSCodeUpdate(context, plugin),
-            (String name) async => widget.switchNetwork(name),
-            _handleWalletConnect),
+        content:
+            AssetsPage(widget.service, widget.plugins, widget.connectedNode,
+                (PolkawalletPlugin plugin) async {
+          _setupWssNotifyTimer();
+          widget.checkJSCodeUpdate(context, plugin);
+        }, (String name, {NetworkParams node}) async {
+          _setupWssNotifyTimer();
+          widget.switchNetwork(name, node: node);
+        }, _handleWalletConnect),
         // content: Container(),
       )
     ];
-    pages.addAll(
-        widget.service.plugin.getNavItems(context, widget.service.keyring));
+    final pluginPages =
+        widget.service.plugin.getNavItems(context, widget.service.keyring);
+    if (pluginPages.length > 1 ||
+        (pluginPages.length == 1 && pluginPages[0].isAdapter)) {
+      final List<MetaHubItem> items = [];
+      pluginPages.forEach((element) {
+        if (element.isAdapter) {
+          items.add(MetaHubItem(element.text, element.content));
+        } else {
+          var dic = I18n.of(context)?.getDic(i18n_full_dic_app, 'public');
+          final metaHubCovers = ['staking', 'governance', 'parachains', 'nft'];
+          final coversZh = ['质押', '治理', '平行链'];
+          metaHubCovers.addAll(coversZh);
+          final coverIndex = metaHubCovers.indexOf(element.text.toLowerCase());
+          final coverName = coverIndex > 3
+              ? metaHubCovers[coverIndex - 4]
+              : element.text.toLowerCase();
+          items.add(MetaHubItem(
+              element.text,
+              GestureDetector(
+                child: Column(
+                  children: coverIndex > -1
+                      ? [
+                          Expanded(
+                              child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                    'assets/images/public/hub_$coverName.png'),
+                                Container(
+                                  padding: EdgeInsets.only(top: 16),
+                                  child: Text(
+                                    dic['hub.cover.$coverName'],
+                                    textAlign: TextAlign.justify,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline4
+                                        .copyWith(
+                                            fontSize: 14, color: Colors.white),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )),
+                          Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  color: Color.fromARGB(36, 255, 255, 255),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4))),
+                              alignment: AlignmentDirectional.center,
+                              child: Text(
+                                dic['hub.enter'],
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headline1
+                                    .copyWith(
+                                        fontSize: 20,
+                                        color: Theme.of(context).errorColor),
+                              ))
+                        ]
+                      : [
+                          PluginItemCard(
+                            margin: EdgeInsets.only(bottom: 16),
+                            title: element.text,
+                          )
+                        ],
+                ),
+                onTap: element.onTap != null
+                    ? element.onTap
+                    : () {
+                        Navigator.of(context).pushNamed(
+                          PluginPage.route,
+                          arguments: {
+                            "title": element.text,
+                            'body': element.content
+                          },
+                        );
+                      },
+              )));
+        }
+      });
+      pages.add(HomeNavItem(
+          content: MetaHubPage(
+            pluginName: widget.service.plugin.basic.name,
+            metaItems: items,
+            colors: getMetaHubColors(),
+          ),
+          icon: Image.asset(
+            "assets/images/compass.png",
+            fit: BoxFit.contain,
+          ),
+          iconActive: Image.asset(
+            "assets/images/compass.png",
+            fit: BoxFit.contain,
+          ),
+          text: I18n.of(context)
+              .getDic(i18n_full_dic_app, 'public')['v3.metahub']));
+    } else {
+      pages.add(HomeNavItem(
+          content: pluginPages[0].content,
+          icon: Image.asset(
+            "assets/images/compass.png",
+            fit: BoxFit.contain,
+          ),
+          iconActive: Image.asset(
+            "assets/images/compass.png",
+            fit: BoxFit.contain,
+          ),
+          text: I18n.of(context)
+              .getDic(i18n_full_dic_app, 'public')['v3.metahub']));
+    }
     pages.add(HomeNavItem(
-      text: dic['profile'],
-      icon: SvgPicture.asset(
-        'assets/images/nav_profile.svg',
-        color: Theme.of(context).disabledColor,
+      text: I18n.of(context).getDic(i18n_full_dic_app, 'profile')['title'],
+      icon: Image.asset(
+        "assets/images/icon_settings_30_nor.png",
+        fit: BoxFit.contain,
       ),
-      iconActive: SvgPicture.asset(
-        'assets/images/nav_profile.svg',
-        color: Theme.of(context).primaryColor,
+      iconActive: Image.asset(
+        "assets/images/icon_settings_30_sel.png",
+        fit: BoxFit.contain,
       ),
-      content: ProfilePage(
-        widget.service,
-        widget.connectedNode,
-        () async => widget.switchNetwork(network_name_kusama),
-      ),
+      content: ProfilePage(widget.service, widget.connectedNode),
     ));
-    return Scaffold(
+    return BottomBarScaffold(
       body: Stack(
         alignment: AlignmentDirectional.bottomEnd,
         children: [
           PageView(
             controller: _pageController,
+            physics: NeverScrollableScrollPhysics(),
             onPageChanged: (index) {
               setState(() {
                 _tabIndex = index;
               });
             },
             children: pages
-                .map((e) => PageWrapperWithBackground(
-                      e.content,
-                      height: 220,
-                      backgroundImage:
-                          widget.service.plugin.basic.backgroundImage,
-                    ))
+                .map((e) =>
+                    widget.service.plugin.basic.name == para_chain_name_acala &&
+                            e.text ==
+                                I18n.of(context).getDic(
+                                    i18n_full_dic_app, 'public')['v3.metahub']
+                        ? e.content
+                        : PageWrapperWithBackground(
+                            e.content,
+                            height: 220,
+                            backgroundImage:
+                                widget.service.plugin.basic.backgroundImage,
+                          ))
                 .toList(),
           ),
           Observer(builder: (_) {
@@ -216,18 +366,15 @@ class _HomePageState extends State<HomePage> {
           })
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tabIndex,
-        iconSize: 32,
-        onTap: (index) {
-          setState(() {
-            _tabIndex = index;
-          });
+      onChanged: (index) {
+        setState(() {
           _pageController.jumpToPage(index);
-        },
-        type: BottomNavigationBarType.fixed,
-        items: _buildNavItems(pages),
-      ),
+          _tabIndex = index;
+        });
+      },
+      pages: pages,
+      tabIndex: _tabIndex,
+      service: widget.service,
     );
   }
 }

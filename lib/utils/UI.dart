@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/walletApi.dart';
 import 'package:polka_module/utils/i18n/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -13,21 +14,8 @@ import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
 import 'package:update_app/update_app.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AppUI {
-  static Future<void> launchURL(String url) async {
-    if (await canLaunch(url)) {
-      try {
-        await launch(url);
-      } catch (err) {
-        print(err);
-      }
-    } else {
-      print('Could not launch $url');
-    }
-  }
-
   static Future<void> alertWASM(
     BuildContext context,
     Function onCancel, {
@@ -65,7 +53,6 @@ class AppUI {
       {bool autoCheck = false}) async {
     if (versions == null || !Platform.isAndroid && !Platform.isIOS) return;
     String platform = Platform.isAndroid ? 'android' : 'ios';
-    final Map dic = I18n.of(context).getDic(i18n_full_dic_app, 'profile');
 
     final int latestCode = versions[platform]['version-code'];
     final String latestBeta = versions[platform]['version-beta'];
@@ -86,13 +73,17 @@ class AppUI {
       if (autoCheck) return;
     }
 
+    final Map dic = I18n.of(context).getDic(i18n_full_dic_app, 'profile');
+    final showLatestBeta =
+        needUpdate ? latestBeta : await Utils.getAppVersion();
+
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         List versionInfo = versions[platform]['info']
             [I18n.of(context).locale.toString().contains('zh') ? 'zh' : 'en'];
         return CupertinoAlertDialog(
-          title: Text('v$latestBeta'),
+          title: Text('v$showLatestBeta'),
           content: Column(
             children: [
               Padding(
@@ -131,19 +122,18 @@ class AppUI {
                 }
                 if (Platform.isIOS) {
                   // go to ios download page
-                  UI.launchURL('https://polkawallet.io/#download');
+                  UI.launchURL(versions[platform]['store-url']);
                 } else if (Platform.isAndroid) {
                   if (buildTarget == BuildTargets.playStore) {
                     // go to google play page
-                    UI.launchURL(
-                        'https://play.google.com/store/apps/details?id=io.polkawallet.www.polka_wallet');
+                    UI.launchURL(versions[platform]['store-url']);
                     return;
                   }
                   // download apk
                   // START LISTENING FOR DOWNLOAD PROGRESS REPORTING EVENTS
                   try {
-                    String url = versions['android']['url'];
-                    UpdateApp.updateApp(url: url, appleId: "1520301768");
+                    UpdateApp.updateApp(
+                        url: versions['android']['url'], appleId: "1520301768");
                     showCupertinoDialog(
                         context: context,
                         builder: (BuildContext ctx) {

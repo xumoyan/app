@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/pages/profile/recovery/createRecoveryPage.dart';
 import 'package:polka_module/pages/profile/recovery/txDetailPage.dart';
 import 'package:polka_module/service/index.dart';
@@ -17,12 +17,13 @@ import 'package:polkawallet_ui/components/borderedTitle.dart';
 import 'package:polkawallet_ui/components/infoItem.dart';
 import 'package:polkawallet_ui/components/outlinedButtonSmall.dart';
 import 'package:polkawallet_ui/components/roundedButton.dart';
-import 'package:polkawallet_ui/components/roundedCard.dart';
+import 'package:polkawallet_ui/components/v3/roundedCard.dart';
 import 'package:polkawallet_ui/components/tapTooltip.dart';
-import 'package:polkawallet_ui/components/txButton.dart';
+import 'package:polkawallet_ui/components/v3/txButton.dart';
 import 'package:polkawallet_ui/pages/txConfirmPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
+import 'package:polkawallet_ui/components/v3/back.dart';
 
 class RecoverySettingPage extends StatefulWidget {
   RecoverySettingPage(this.service);
@@ -160,12 +161,14 @@ class _RecoverySettingPage extends State<RecoverySettingPage> {
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'profile');
     return Scaffold(
-      appBar: AppBar(title: Text(dic['recovery']), centerTitle: true),
+      appBar: AppBar(
+          title: Text(dic['recovery']), centerTitle: true, leading: BackBtn()),
       body: SafeArea(
         child: Observer(
           builder: (_) {
-            final isKSMOrDOT = widget.service.plugin.basic.name == 'kusama' ||
-                widget.service.plugin.basic.name == 'polkadot';
+            final isKSMOrDOT =
+                widget.service.plugin.basic.name == relay_chain_name_ksm ||
+                    widget.service.plugin.basic.name == relay_chain_name_dot;
             final symbol = isKSMOrDOT
                 ? widget.service.plugin.networkState.tokenSymbol[0]
                 : widget.service.plugin.networkState.tokenSymbol ?? '';
@@ -207,6 +210,7 @@ class _RecoverySettingPage extends State<RecoverySettingPage> {
                     key: _refreshKey,
                     onRefresh: _fetchData,
                     child: ListView(
+                      physics: BouncingScrollPhysics(),
                       children: [
                         RoundedCard(
                           margin: EdgeInsets.all(16),
