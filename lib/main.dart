@@ -9,6 +9,8 @@ import 'package:polkawallet_plugin_chainx/polkawallet_plugin_chainx.dart';
 import 'package:flutter_boost/flutter_boost.dart';
 
 void main() async {
+  CustomFlutterBinding();
+
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

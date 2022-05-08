@@ -7,9 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:polkawallet_plugin_chainx/polkawallet_plugin_chainx.dart';
 import 'package:polkawallet_plugin_kusama/polkawallet_plugin_kusama.dart';
+import 'package:flutter_boost/flutter_boost.dart';
 
 void main() async {
   // FlutterBugly.postCatchedException(() async {
+
+  CustomFlutterBinding();
+
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -35,3 +39,6 @@ void main() async {
   //   );
   // });
 }
+
+class CustomFlutterBinding extends WidgetsFlutterBinding
+    with BoostFlutterBinding {}

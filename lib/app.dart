@@ -563,132 +563,359 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
     return _keyring.allAccounts.length;
   }
 
-  Map<String, Widget Function(BuildContext)> _getRoutes() {
+  Map<String, FlutterBoostRouteFactory> _getRoutes() {
     final pluginPages = _service != null && _service.plugin != null
         ? _service.plugin.getRoutes(_keyring)
         : {};
     return {
       /// pages of plugin
       ...pluginPages,
+      HomePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (BuildContext context) => Observer(
+            builder: (BuildContext context) {
+              _homePageContext = context;
 
-      StartPage.route: (_) {
-        _startApp(context);
-        return StartPage();
+              return FutureBuilder<int>(
+                future: _startApp(context),
+                builder: (_, AsyncSnapshot<int> snapshot) {
+                  if (snapshot.hasData && _service != null) {
+                    if (WalletApp.isInitial == 1) {
+                      WalletApp.isInitial++;
+                      _checkJSCodeUpdate(context, _service.plugin,
+                          needReload: false);
+                      WalletApp.checkUpdate(context);
+                      _queryPluginsConfig();
+                    }
+                    return snapshot.data > 0
+                        ? HomePage(_service, widget.plugins, _connectedNode,
+                            _checkJSCodeUpdate, _switchNetwork, _changeNode)
+                        : CreateAccountEntryPage(
+                            widget.plugins, WalletApp.buildTarget);
+                  } else {
+                    return Container(color: Theme.of(context).hoverColor);
+                  }
+                },
+              );
+            },
+          ),
+        );
+      },
+      TxConfirmPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => TxConfirmPage(
+                _service.plugin, _keyring, _service.account.getPassword));
+      },
+      WalletExtensionSignPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WalletExtensionSignPage(
+              _service.plugin, _keyring, _service.account.getPassword),
+        );
+      },
+      QrSenderPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => QrSenderPage(_service.plugin, _keyring));
+      },
+      QrSignerPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => QrSignerPage(_service.plugin, _keyring));
+      },
+      ScanPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ScanPage(_service.plugin, _keyring));
+      },
+      AccountListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountListPage(_service.plugin, _keyring),
+        );
+      },
+      PluginAccountListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => PluginAccountListPage(_service.plugin, _keyring),
+        );
+      },
+      AccountQrCodePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountQrCodePage(_service.plugin, _keyring),
+        );
+      },
+      NetworkSelectPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => NetworkSelectPage(_service, widget.plugins,
+                widget.disabledPlugins, _changeNetwork));
+      },
+      WCPairingConfirmPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WCPairingConfirmPage(_service),
+        );
+      },
+      WCSessionsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => WCSessionsPage(_service),
+        );
+      },
+      WalletConnectSignPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) =>
+              WalletConnectSignPage(_service, _service.account.getPassword),
+        );
+      },
+      GuidePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => GuidePage(),
+        );
+      },
+      AcalaBridgePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AcalaBridgePage(),
+        );
+      },
+      StakingKSMGuide.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => StakingKSMGuide(_service),
+        );
       },
 
-      /// basic pages
-      HomePage.route: (_) => WillPopScopWrapper(
-            Observer(
-              builder: (BuildContext context) {
-                final accountCreated =
-                    _service?.store?.account?.accountCreated ?? false;
+      /// account
+      CreateAccountEntryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (BuildContext context) =>
+                CreateAccountEntryPage(widget.plugins, WalletApp.buildTarget));
+      },
+      CreateAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => CreateAccountPage(_service));
+      },
+      BackupAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => BackupAccountPage(_service));
+      },
+      DAppWrapperPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => DAppWrapperPage(_service.plugin, _keyring));
+      },
+      SelectImportTypePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => SelectImportTypePage(_service));
+      },
+      ImportAccountFormMnemonic.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFormMnemonic(_service));
+      },
+      ImportAccountFromRawSeed.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFromRawSeed(_service));
+      },
+      ImportAccountFormKeyStore.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountFormKeyStore(_service));
+      },
+      ImportAccountCreatePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => ImportAccountCreatePage(_service));
+      },
 
-                _homePageContext = context;
-
-                return FutureBuilder<int>(
+      /// assets
+      AssetPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AssetPage(_service),
+        );
+      },
+      TransferDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TransferDetailPage(_service),
+        );
+      },
+      TransferPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TransferPage(_service),
+        );
+      },
+      LocksDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (BuildContext context) => FutureBuilder<int>(
                   future: _startApp(context),
                   builder: (_, AsyncSnapshot<int> snapshot) {
                     if (snapshot.hasData && _service != null) {
-                      if (WalletApp.isInitial == 1) {
-                        WalletApp.isInitial++;
-                        _checkJSCodeUpdate(context, _service.plugin,
-                            needReload: false);
-                        WalletApp.checkUpdate(context);
-                        _queryPluginsConfig();
-                      }
-                      return snapshot.data > 0
-                          ? HomePage(_service, widget.plugins, _connectedNode,
-                              _checkJSCodeUpdate, _switchNetwork, _changeNode)
-                          : CreateAccountEntryPage(_service.plugin);
+                      return LocksDetailPage(_service);
                     } else {
-                      return Container(color: Theme.of(context).hoverColor);
+                      return Container(color: Theme.of(context).canvasColor);
                     }
                   },
-                );
-              },
-            ),
-          ),
-      TxConfirmPage.route: (_) => TxConfirmPage(
-            _service.plugin,
-            _keyring,
-            _service.account.getPassword,
-            txDisabledCalls: _service.store.settings
-                .getDisabledCalls(_service.plugin.basic.name),
-          ),
-      WalletExtensionSignPage.route: (_) => WalletExtensionSignPage(
-          _service.plugin, _keyring, _service.account.getPassword),
-      QrSenderPage.route: (_) => QrSenderPage(_service.plugin, _keyring),
-      QrSignerPage.route: (_) => QrSignerPage(_service.plugin, _keyring),
-      ScanPage.route: (_) => ScanPage(_service.plugin, _keyring),
-      AccountListPage.route: (_) => AccountListPage(_service.plugin, _keyring),
-      PluginAccountListPage.route: (_) =>
-          PluginAccountListPage(_service.plugin, _keyring),
-      AccountQrCodePage.route: (_) =>
-          AccountQrCodePage(_service.plugin, _keyring),
-      NetworkSelectPage.route: (_) => NetworkSelectPage(
-          _service, widget.plugins, widget.disabledPlugins, _changeNetwork),
-      WCPairingConfirmPage.route: (_) => WCPairingConfirmPage(_service),
-      WCSessionsPage.route: (_) => WCSessionsPage(_service),
-      WalletConnectSignPage.route: (_) =>
-          WalletConnectSignPage(_service, _service.account.getPassword),
-      GuidePage.route: (_) => GuidePage(),
-      AcalaBridgePage.route: (_) => AcalaBridgePage(),
-      StakingKSMGuide.route: (_) => StakingKSMGuide(_service),
-
-      /// account
-      CreateAccountEntryPage.route: (_) =>
-          CreateAccountEntryPage(_service.plugin),
-      CreateAccountPage.route: (_) => CreateAccountPage(_service),
-      BackupAccountPage.route: (_) => BackupAccountPage(_service),
-      DAppWrapperPage.route: (_) => DAppWrapperPage(_service.plugin, _keyring),
-      SelectImportTypePage.route: (_) => SelectImportTypePage(_service),
-      ImportAccountFormMnemonic.route: (_) =>
-          ImportAccountFormMnemonic(_service),
-      ImportAccountFromRawSeed.route: (_) => ImportAccountFromRawSeed(_service),
-      ImportAccountFromRawSeed.route: (_) => ImportAccountFromRawSeed(_service),
-      ImportAccountFormKeyStore.route: (_) =>
-          ImportAccountFormKeyStore(_service),
-      ImportAccountCreatePage.route: (_) => ImportAccountCreatePage(_service),
-
-      /// assets
-      AssetPage.route: (_) => AssetPage(_service),
-      TransferDetailPage.route: (_) => TransferDetailPage(_service),
-      TransferPage.route: (_) => TransferPage(_service),
-      LocksDetailPage.route: (_) => LocksDetailPage(_service),
-      ManageAssetsPage.route: (_) => ManageAssetsPage(_service),
-      AnnouncementPage.route: (_) => AnnouncementPage(),
-      // NodeSelectPage.route: (_) =>
-      //     NodeSelectPage(_service, widget.plugins, _changeNetwork, _changeNode),
+                ));
+      },
+      ManageAssetsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ManageAssetsPage(_service),
+        );
+      },
+      AnnouncementPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AnnouncementPage(),
+        );
+      },
 
       /// profile
-      SignMessagePage.route: (_) => SignMessagePage(_service),
-      ContactsPage.route: (_) => ContactsPage(_service),
-      ContactPage.route: (_) => ContactPage(_service),
-      AboutPage.route: (_) => AboutPage(_service),
-      AccountManagePage.route: (_) => AccountManagePage(_service),
-      CommunityPage.route: (_) => CommunityPage(_service),
-      ChangeNamePage.route: (_) => ChangeNamePage(_service),
-      ChangePasswordPage.route: (_) => ChangePasswordPage(_service),
-      ExportAccountPage.route: (_) => ExportAccountPage(_service),
-      ExportResultPage.route: (_) => ExportResultPage(),
-      SettingsPage.route: (_) =>
-          SettingsPage(_service, _changeLang, _changeNode),
-      RemoteNodeListPage.route: (_) =>
-          RemoteNodeListPage(_service, _changeNode),
-      CreateRecoveryPage.route: (_) => CreateRecoveryPage(_service),
-      FriendListPage.route: (_) => FriendListPage(_service),
-      RecoverySettingPage.route: (_) => RecoverySettingPage(_service),
-      RecoveryStatePage.route: (_) => RecoveryStatePage(_service),
-      RecoveryProofPage.route: (_) => RecoveryProofPage(_service),
-      InitiateRecoveryPage.route: (_) => InitiateRecoveryPage(_service),
-      VouchRecoveryPage.route: (_) => VouchRecoveryPage(_service),
-      TxDetailPage.route: (_) => TxDetailPage(_service),
-      MessagePage.route: (_) => MessagePage(_service),
-
-      PluginPage.route: (_) => PluginPage(_service),
-
-      /// test
-      DAppsTestPage.route: (_) => DAppsTestPage(),
+      SignMessagePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => SignMessagePage(_service),
+        );
+      },
+      ContactsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ContactsPage(_service),
+        );
+      },
+      ContactPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ContactPage(_service),
+        );
+      },
+      AboutPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AboutPage(_service),
+        );
+      },
+      AccountManagePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => AccountManagePage(_service),
+        );
+      },
+      CommunityPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => CommunityPage(_service),
+        );
+      },
+      ChangeNamePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ChangeNamePage(_service),
+        );
+      },
+      ChangePasswordPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ChangePasswordPage(_service),
+        );
+      },
+      ExportAccountPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ExportAccountPage(_service),
+        );
+      },
+      ExportResultPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => ExportResultPage(),
+        );
+      },
+      SettingsPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => SettingsPage(_service, _changeLang, _changeNode),
+        );
+      },
+      RemoteNodeListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RemoteNodeListPage(_service, _changeNode),
+        );
+      },
+      CreateRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => CreateRecoveryPage(_service),
+        );
+      },
+      FriendListPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => FriendListPage(_service),
+        );
+      },
+      RecoverySettingPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoverySettingPage(_service),
+        );
+      },
+      RecoveryStatePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoveryStatePage(_service),
+        );
+      },
+      RecoveryProofPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => RecoveryProofPage(_service),
+        );
+      },
+      InitiateRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => InitiateRecoveryPage(_service),
+        );
+      },
+      VouchRecoveryPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => VouchRecoveryPage(_service),
+        );
+      },
+      TxDetailPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => TxDetailPage(_service),
+        );
+      },
+      PluginPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => PluginPage(_service),
+        );
+      },
+      DAppsTestPage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => DAppsTestPage(),
+        );
+      },
     };
   }
 
@@ -736,6 +963,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
     if (!_isInitialUriHandled) {
       _isInitialUriHandled = true;
       print('_handleInitialUri called');
+
       try {
         final uri = await getInitialUri();
         if (uri == null) {
@@ -789,6 +1017,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
     _handleIncomingAppLinks();
     _handleInitialAppLinks();
     WidgetsBinding.instance.addObserver(this);
@@ -818,47 +1047,65 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
     }
   }
 
+  Route<dynamic> routeFactory(RouteSettings settings, String uniqueId) {
+    final routes = _getRoutes();
+    FlutterBoostRouteFactory func = routes[settings.name];
+    if (func == null) {
+      return null;
+    }
+    return func(settings, uniqueId);
+  }
+
+  Widget appBuilder(Widget home) {
+    return MaterialApp(
+      title: 'Polkawallet',
+      theme: _theme ??
+          _getAppTheme(
+            widget.plugins[0].basic.primaryColor,
+            secondaryColor: widget.plugins[0].basic.gradientColor,
+          ),
+      localizationsDelegates: [
+        AppLocalizationsDelegate(_locale ?? Locale('en', '')),
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en', ''),
+        const Locale('zh', ''),
+      ],
+      home: home,
+      debugShowCheckedModeBanner: true,
+      builder: (context, widget) {
+        return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+            child: widget);
+      },
+    );
+  }
+
   @override
   Widget build(_) {
-    final routes = _getRoutes();
-
     /// we will do auto routing after plugin changed & app rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) => _doAutoRouting());
 
     return GestureDetector(
-      onTapUp: (_) {
-        FocusScope.of(context).focusedChild?.unfocus();
-      },
-      child: ScreenUtilInit(
-          designSize: Size(390, 844),
-          builder: (_) => MaterialApp(
-                title: 'Polkawallet',
-                builder: (context, widget) {
-                  return MediaQuery(
-                      data:
-                          MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                      child: widget);
-                },
-                theme: _theme ??
-                    _getAppTheme(
-                      widget.plugins[0].basic.primaryColor,
-                      secondaryColor: widget.plugins[0].basic.gradientColor,
-                    ),
-                debugShowCheckedModeBanner: false,
-                localizationsDelegates: [
-                  AppLocalizationsDelegate(_locale ?? Locale('en', '')),
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                ],
-                supportedLocales: [
-                  const Locale('en', ''),
-                  const Locale('zh', ''),
-                ],
-                initialRoute: "/",
-                onGenerateRoute: (settings) => CupertinoPageRoute(
-                    builder: routes[settings.name], settings: settings),
-              )),
-    );
+        onTapUp: (_) {
+          FocusScope.of(context).focusedChild?.unfocus();
+        },
+        child: ScreenUtilInit(
+            designSize: Size(390, 844),
+            builder: (_) => FutureBuilder<int>(
+                  future: _startApp(context),
+                  builder: (_, AsyncSnapshot<int> snapshot) {
+                    if (snapshot.hasData && _service != null) {
+                      return FlutterBoostApp(routeFactory,
+                          appBuilder: appBuilder,
+                          initialRoute: '/account/entry');
+                    } else {
+                      return Container(color: Theme.of(context).canvasColor);
+                    }
+                  },
+                )));
   }
 }
