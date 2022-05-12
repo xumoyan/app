@@ -1,4 +1,5 @@
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,9 @@ class _WCPairingConfirmPageState extends State<WCPairingConfirmPage> {
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
 
-    final WCPairingData args = ModalRoute.of(context).settings.arguments;
+    final WCPairingData args =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as WCPairingData;
     final permissions = List.of(args.permissions.jsonrpc['methods']);
 
     return Scaffold(

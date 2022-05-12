@@ -59,16 +59,18 @@ class LocksDetailPageState extends State<LocksDetailPage> {
         .toList();
     txs.add(
         'api.tx.democracy.unlock("${widget.service.keyring.current.address}")');
-    final res = await Navigator.of(context).pushNamed(TxConfirmPage.route,
-        arguments: TxConfirmParams(
-            txTitle: dic['lock.unlock'],
-            module: 'utility',
-            call: 'batch',
-            txDisplay: {
-              "actions": ['democracy.removeVote', 'democracy.unlock'],
-            },
-            params: [],
-            rawParams: '[[${txs.join(',')}]]'));
+    final res =
+        await Navigator.of(context).pushNamed(TxConfirmPage.route, arguments: {
+      'params': TxConfirmParams(
+          txTitle: dic['lock.unlock'],
+          module: 'utility',
+          call: 'batch',
+          txDisplay: {
+            "actions": ['democracy.removeVote', 'democracy.unlock'],
+          },
+          params: [],
+          rawParams: '[[${txs.join(',')}]]')
+    });
     if (res != null) {
       _refreshKey.currentState.show();
     }

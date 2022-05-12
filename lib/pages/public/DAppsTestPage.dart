@@ -43,8 +43,9 @@ class _DAppsTestPageState extends State<DAppsTestPage> {
                     onPressed: () {
                       final url = _urlCtrl.text.trim();
                       Navigator.of(context).pushNamed(DAppWrapperPage.route,
-                          arguments:
-                              url.contains('://') ? url : 'https://$url');
+                          arguments: {
+                            'params': url.contains('://') ? url : 'https://$url'
+                          });
                     },
                   )
                 ],
@@ -56,7 +57,7 @@ class _DAppsTestPageState extends State<DAppsTestPage> {
                   title: Text('apps.acala.network'),
                   onTap: () {
                     Navigator.of(context).pushNamed(DAppWrapperPage.route,
-                        arguments: 'https://apps.acala.network/');
+                        arguments: {'params': 'https://apps.acala.network/'});
                   },
                 ),
               ),
@@ -76,7 +77,9 @@ class _DAppsTestPageState extends State<DAppsTestPage> {
                   title: Text('polkadot.polkassembly.io'),
                   onTap: () {
                     Navigator.of(context).pushNamed(DAppWrapperPage.route,
-                        arguments: 'https://polkadot.polkassembly.io/');
+                        arguments: {
+                          'params': 'https://polkadot.polkassembly.io/'
+                        });
                   },
                 ),
               ),
@@ -85,7 +88,7 @@ class _DAppsTestPageState extends State<DAppsTestPage> {
                   title: Text('bifrost.app'),
                   onTap: () {
                     Navigator.of(context).pushNamed(DAppWrapperPage.route,
-                        arguments: 'https://bifrost.app/');
+                        arguments: {'params': 'https://bifrost.app/'});
                   },
                 ),
               )

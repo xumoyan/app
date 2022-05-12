@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:polka_module/pages/profile/contacts/contactPage.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +73,8 @@ class _FriendListPage extends State<FriendListPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      var args = ModalRoute.of(context).settings.arguments;
+      var args = Utils.getParams(ModalRoute.of(context).settings.arguments)
+          as List<KeyPairData>;
       setState(() {
         _selected = args;
       });

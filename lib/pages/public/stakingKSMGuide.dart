@@ -14,7 +14,7 @@ class StakingKSMGuide extends StatelessWidget {
   static const route = '/guide/staking/ksm';
 
   void _onRoute(BuildContext context, String path, Map args) {
-    Navigator.of(context).pushNamed(path, arguments: args);
+    Navigator.of(context).pushNamed(path, arguments: {'params': args});
   }
 
   @override

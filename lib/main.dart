@@ -2,19 +2,20 @@ import 'package:polka_module/app.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:flutter_bugly/flutter_bugly.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:polkawallet_plugin_kusama/polkawallet_plugin_kusama.dart';
 import 'package:polkawallet_plugin_chainx/polkawallet_plugin_chainx.dart';
 import 'package:flutter_boost/flutter_boost.dart';
+import 'package:polka_module/life-cycle.dart';
 
 void main() async {
+  PageVisibilityBinding.instance.addGlobalObserver(AppLifecycleObserver());
   CustomFlutterBinding();
-
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+
   await GetStorage.init(get_storage_container);
   final plugins = [
     PluginKusama(name: 'polkadot'),

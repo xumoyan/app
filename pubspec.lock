@@ -468,13 +468,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
-  flutter_page_indicator:
-    dependency: transitive
-    description:
-      name: flutter_page_indicator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -503,13 +496,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.23.0+1"
-  flutter_swiper:
-    dependency: transitive
-    description:
-      name: flutter_swiper
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.6"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -988,7 +974,7 @@ packages:
       path: "../coding/polkawallet/polkawallet_plugin_kusama"
       relative: true
     source: path
-    version: "0.4.4"
+    version: "0.2.3"
   polkawallet_sdk:
     dependency: "direct overridden"
     description:
@@ -1211,13 +1197,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.0"
-  sticky_headers:
-    dependency: transitive
-    description:
-      name: sticky_headers
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   stream_channel:
     dependency: transitive
     description:
@@ -1267,13 +1246,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  transformer_page_view:
-    dependency: transitive
-    description:
-      name: transformer_page_view
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.6"
   tuple:
     dependency: transitive
     description:

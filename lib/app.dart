@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:polka_module/common/components/willPopScopWrapper.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/common/types/pluginDisabled.dart';
 import 'package:polka_module/pages/account/create/backupAccountPage.dart';
@@ -123,6 +122,8 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
 
   BuildContext _homePageContext;
   PageRouteParams _autoRoutingParams;
+
+  bool apiInit = false;
 
   ThemeData _getAppTheme(MaterialColor color, {Color secondaryColor}) {
     return ThemeData(
@@ -534,22 +535,24 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       } else {
         _changeLang(Localizations.localeOf(context).toString());
       }
+    }
 
+    if (!apiInit) {
       final useLocalJS = WalletApi.getPolkadotJSVersion(
             _store.storage,
-            service.plugin.basic.name,
-            service.plugin.basic.jsCodeVersion,
+            _service.plugin.basic.name,
+            _service.plugin.basic.jsCodeVersion,
           ) >
-          service.plugin.basic.jsCodeVersion;
+          _service.plugin.basic.jsCodeVersion;
 
-      await service.plugin.beforeStart(_keyring,
+      await _service.plugin.beforeStart(_keyring,
           jsCode: useLocalJS
               ? WalletApi.getPolkadotJSCode(
-                  _store.storage, service.plugin.basic.name)
+                  _store.storage, _service.plugin.basic.name)
               : null, socketDisconnectedAction: () {
         UI.throttle(() {
           _dropsServiceCancel();
-          _restartWebConnect(service);
+          _restartWebConnect(_service);
         });
       });
 
@@ -557,7 +560,11 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
         _store.assets.loadCache(_keyring.current, _service.plugin.basic.name);
       }
 
-      _startPlugin(service);
+      _startPlugin(_service);
+
+      setState(() {
+        apiInit = true;
+      });
     }
 
     return _keyring.allAccounts.length;
@@ -567,6 +574,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
     final pluginPages = _service != null && _service.plugin != null
         ? _service.plugin.getRoutes(_keyring)
         : {};
+
     return {
       /// pages of plugin
       ...pluginPages,
@@ -916,6 +924,12 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
           builder: (_) => DAppsTestPage(),
         );
       },
+      MessagePage.route: (settings, uniqueId) {
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (_) => MessagePage(_service),
+        );
+      },
     };
   }
 
@@ -1075,7 +1089,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
         const Locale('zh', ''),
       ],
       home: home,
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       builder: (context, widget) {
         return MediaQuery(
             data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
@@ -1098,10 +1112,9 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
             builder: (_) => FutureBuilder<int>(
                   future: _startApp(context),
                   builder: (_, AsyncSnapshot<int> snapshot) {
-                    if (snapshot.hasData && _service != null) {
+                    if (snapshot.hasData && _service != null && apiInit) {
                       return FlutterBoostApp(routeFactory,
-                          appBuilder: appBuilder,
-                          initialRoute: '/account/entry');
+                          appBuilder: appBuilder, initialRoute: '/');
                     } else {
                       return Container(color: Theme.of(context).canvasColor);
                     }

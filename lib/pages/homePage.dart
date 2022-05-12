@@ -262,8 +262,10 @@ class _HomePageState extends State<HomePage> {
                         Navigator.of(context).pushNamed(
                           PluginPage.route,
                           arguments: {
-                            "title": element.text,
-                            'body': element.content
+                            "params": {
+                              "title": element.text,
+                              'body': element.content
+                            }
                           },
                         );
                       },

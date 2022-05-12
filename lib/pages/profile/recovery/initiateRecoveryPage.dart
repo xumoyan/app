@@ -32,10 +32,12 @@ class _InitiateRecoveryPage extends State<InitiateRecoveryPage> {
   Future<void> _handleRecoverableSelect() async {
     var res = await Navigator.of(context).pushNamed(
       AccountListPage.route,
-      arguments: AccountListPageParams(
-          title:
-              I18n.of(context).getDic(i18n_full_dic_app, 'profile')['contact'],
-          list: widget.service.keyring.allAccounts),
+      arguments: {
+        'params': AccountListPageParams(
+            title: I18n.of(context)
+                .getDic(i18n_full_dic_app, 'profile')['contact'],
+            list: widget.service.keyring.allAccounts)
+      },
     );
     if (res != null) {
       setState(() {

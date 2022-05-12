@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:polka_module/pages/walletConnect/wcPairingConfirmPage.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,9 @@ class _WalletConnectSignPageState extends State<WalletConnectSignPage> {
     setState(() {
       _submitting = true;
     });
-    final WCPayloadData args = ModalRoute.of(context).settings.arguments;
+    final WCPayloadData args =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as WCPayloadData;
     final res = await widget.service.plugin.sdk.api.walletConnect
         .signPayload(args, password);
     if (mounted) {
@@ -57,7 +60,9 @@ class _WalletConnectSignPageState extends State<WalletConnectSignPage> {
   @override
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_ui, 'common');
-    final WCPayloadData args = ModalRoute.of(context).settings.arguments;
+    final WCPayloadData args =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as WCPayloadData;
     final session = widget.service.store.account.wcSessions
         .firstWhere((e) => e.topic == args.topic);
     final address = args.payload.params[0];

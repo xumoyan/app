@@ -129,25 +129,26 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
               }
 
               print("new sign....");
-              // final params = SignAsExtensionParam();
-              // params.msgType = "pub(bytes.sign)";
-              // print(
-              //     "widget.service.keyring.current.address ===== ${service.keyring.current.address}");
-              // params.request = {
-              //   "address": service.keyring.current.address,
-              //   "data": service.keyring.current.address,
-              // };
-              // print(params.request);
-              // final res = await service.plugin.sdk.api.keyring
-              //     .signAsExtension(_coinDetail.password, params);
+              final params = SignAsExtensionParam();
+              params.msgType = "pub(bytes.sign)";
+              print(
+                  "widget.service.keyring.current.address ===== ${service.keyring.current.address}");
+              params.request = {
+                "address": service.keyring.current.address,
+                "data": service.keyring.current.address,
+              };
+              print(params.request);
+              final res = await service.plugin.sdk.api.keyring
+                  .signAsExtension(_coinDetail.password, params);
 
-              // _coinDetail.signature = res.signature;
-              // _coinDetail.address = service.keyring.current.address;
-              // _coinDetail.addressIndex = pathClient;
-              // _coinDetail.polkaInfo =
-              //     json.encode(service.keyring.current.toJson());
+              _coinDetail.signature = res.signature;
+              _coinDetail.address = service.keyring.current.address;
+              _coinDetail.addressIndex = pathClient;
+              Map<String, dynamic> map = service.keyring.current.toJson();
+              map["icon"] = null;
+              _coinDetail.polkaInfo = json.encode(map);
 
-              // channel.send(json.encode(CoinDetail.toJson(_coinDetail)));
+              channel.send(json.encode(CoinDetail.toJson(_coinDetail)));
             })),
       ),
     );

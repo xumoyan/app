@@ -9,8 +9,9 @@ class AcalaBridgePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).popAndPushNamed(TransferPage.route,
-          arguments: TransferPageParams(chainTo: para_chain_name_acala));
+      Navigator.of(context).popAndPushNamed(TransferPage.route, arguments: {
+        "params": TransferPageParams(chainTo: para_chain_name_acala)
+      });
     });
     return Scaffold(
       backgroundColor: Colors.transparent,

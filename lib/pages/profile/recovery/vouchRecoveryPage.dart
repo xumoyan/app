@@ -140,10 +140,14 @@ class _VouchRecoveryPage extends State<VouchRecoveryPage> {
                           onTap: () async {
                             var to = await Navigator.of(context).pushNamed(
                               AccountListPage.route,
-                              arguments: AccountListPageParams(
-                                  title: I18n.of(context).getDic(
-                                      i18n_full_dic_app, 'profile')['contact'],
-                                  list: widget.service.keyring.allWithContacts),
+                              arguments: {
+                                'params': AccountListPageParams(
+                                    title: I18n.of(context).getDic(
+                                        i18n_full_dic_app,
+                                        'profile')['contact'],
+                                    list:
+                                        widget.service.keyring.allWithContacts)
+                              },
                             );
                             if (to != null) {
                               setState(() {
@@ -171,10 +175,14 @@ class _VouchRecoveryPage extends State<VouchRecoveryPage> {
                           onTap: () async {
                             var to = await Navigator.of(context).pushNamed(
                               AccountListPage.route,
-                              arguments: AccountListPageParams(
-                                  title: I18n.of(context).getDic(
-                                      i18n_full_dic_app, 'profile')['contact'],
-                                  list: widget.service.keyring.allWithContacts),
+                              arguments: {
+                                'params': AccountListPageParams(
+                                    title: I18n.of(context).getDic(
+                                        i18n_full_dic_app,
+                                        'profile')['contact'],
+                                    list:
+                                        widget.service.keyring.allWithContacts)
+                              },
                             );
                             ;
                             if (to != null) {

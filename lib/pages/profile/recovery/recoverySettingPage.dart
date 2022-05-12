@@ -286,7 +286,7 @@ class _RecoverySettingPage extends State<RecoverySettingPage> {
                           onPressed: () {
                             Navigator.of(context).pushNamed(
                               CreateRecoveryPage.route,
-                              arguments: friends,
+                              arguments: {'params': friends},
                             );
                           },
                         ),

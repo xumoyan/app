@@ -1,5 +1,6 @@
 import 'package:polka_module/service/index.dart';
 import 'package:flutter/material.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polkawallet_ui/components/v3/back.dart';
 import 'package:polkawallet_ui/ui.dart';
 import 'package:polkawallet_ui/components/v3/plugin/pluginScaffold.dart';
@@ -17,7 +18,8 @@ class PluginPage extends StatefulWidget {
 class _PluginPageState extends State<PluginPage> {
   @override
   Widget build(BuildContext context) {
-    final data = ModalRoute.of(context).settings.arguments as Map;
+    final data =
+        Utils.getParams(ModalRoute.of(context).settings.arguments) as Map;
     // return PluginScaffold(
     //     appBar: PluginAppBar(
     //       title: Text(data['title']),

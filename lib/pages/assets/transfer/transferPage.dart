@@ -2,6 +2,7 @@ import 'package:polka_module/common/components/cupertinoAlertDialogWithCheckbox.
 import 'package:polka_module/common/components/jumpToLink.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -383,6 +384,11 @@ class _TransferPageState extends State<TransferPage> {
         TxSenderData(widget.service.keyring.current.address,
             widget.service.keyring.current.pubKey));
 
+    print("widget.service = ${widget.service}");
+    print("widget.service.plugin = ${widget.service.plugin}");
+    print("widget.service.plugin.sdk = ${widget.service.plugin.sdk}");
+    print("widget.service.plugin.sdk.api = ${widget.service.plugin.sdk.api}");
+
     final fee = await widget.service.plugin.sdk.api.tx
         .estimateFees(txInfo, txParams.params);
     if (mounted) {
@@ -634,7 +640,9 @@ class _TransferPageState extends State<TransferPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _getTxFee();
 
-      final TransferPageParams args = ModalRoute.of(context).settings.arguments;
+      final TransferPageParams args =
+          Utils.getParams(ModalRoute.of(context).settings.arguments)
+              as TransferPageParams;
       if (args?.address != null) {
         _updateAccountTo(args.address);
       } else {
@@ -645,6 +653,7 @@ class _TransferPageState extends State<TransferPage> {
 
       final xcmEnabledChains = await widget.service.store.settings
           .getXcmEnabledChains(widget.service.plugin.basic.name);
+
       setState(() {
         _accountOptions = widget.service.keyring.allWithContacts.toList();
         _xcmEnabledChains = xcmEnabledChains;

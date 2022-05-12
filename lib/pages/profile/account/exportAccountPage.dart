@@ -27,7 +27,8 @@ class ExportAccountPage extends StatelessWidget {
     if (password != null) {
       final seed = await service.plugin.sdk.api.keyring
           .getDecryptedSeed(service.keyring, password);
-      Navigator.of(context).pushNamed(ExportResultPage.route, arguments: seed);
+      Navigator.of(context)
+          .pushNamed(ExportResultPage.route, arguments: {'params': seed});
     }
   }
 

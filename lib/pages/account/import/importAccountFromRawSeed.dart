@@ -1,5 +1,6 @@
 import 'package:polka_module/pages/account/create/accountAdvanceOption.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -44,7 +45,8 @@ class _ImportAccountFromRawSeedState extends State<ImportAccountFromRawSeed> {
 
   @override
   Widget build(BuildContext context) {
-    selected = (ModalRoute.of(context).settings.arguments as Map)["type"];
+    selected = (Utils.getParams(ModalRoute.of(context).settings.arguments)
+        as Map)["type"];
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
     return Scaffold(
       appBar: AppBar(

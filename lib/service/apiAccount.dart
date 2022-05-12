@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/store/types/polkaChannel.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -153,8 +156,20 @@ class ApiAccount {
   }
 
   Future<String> getPassword(BuildContext context, KeyPairData acc) async {
+    BasicMessageChannel<String> channel =
+        BasicMessageChannel("BasicMessageChannelPlugin", StringCodec());
+
+    print("send message============${json.encode({'action': 'password'})}");
+    channel.send(json.encode({'action': 'password'}));
+
+    channel.setMessageHandler((message) => Future<String>(() {
+          print("message ===== $message");
+          return message;
+        }));
+
     final bioPass = await getPasswordWithBiometricAuth(context, acc.pubKey);
     final isClose = isCloseBiometricDisabled(acc.pubKey);
+
     if (bioPass == null && !isClose) {
       await showCupertinoDialog(
         context: context,

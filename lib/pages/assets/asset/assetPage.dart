@@ -340,7 +340,9 @@ class _AssetPageState extends State<AssetPage> {
                                     [''])[0];
                                 Navigator.of(context).pushNamed(
                                     '/assets/token/transfer',
-                                    arguments: {'tokenNameId': symbol});
+                                    arguments: {
+                                      'params': {'tokenNameId': symbol}
+                                    });
                                 return;
                               }
                               Navigator.pushNamed(context, TransferPage.route);

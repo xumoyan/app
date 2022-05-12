@@ -1,4 +1,5 @@
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,8 @@ class _Contact extends State<ContactPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _args = ModalRoute.of(context).settings.arguments;
+    _args = Utils.getParams(ModalRoute.of(context).settings.arguments)
+        as KeyPairData;
     if (_args != null) {
       _addressCtrl.text = _args.address;
       _nameCtrl.text = _args.name;

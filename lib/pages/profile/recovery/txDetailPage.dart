@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,8 @@ class TxDetailPage extends StatelessWidget {
     final decimals = isKSMOrDOT
         ? service.plugin.networkState.tokenDecimals[0]
         : service.plugin.networkState.tokenDecimals ?? 12;
-    final TxData detail = ModalRoute.of(context).settings.arguments;
+    final TxData detail =
+        Utils.getParams(ModalRoute.of(context).settings.arguments) as TxData;
     List<TxDetailInfoItem> info = <TxDetailInfoItem>[
       TxDetailInfoItem(label: dic['tx.action'], content: Text(detail.call)),
     ];

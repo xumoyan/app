@@ -1,3 +1,4 @@
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,9 @@ class AnnouncementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
-    final AnnouncePageParams params = ModalRoute.of(context).settings.arguments;
+    final AnnouncePageParams params =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as AnnouncePageParams;
     return Scaffold(
       appBar: AppBar(
           title: Text(dic['announce']), centerTitle: true, leading: BackBtn()),

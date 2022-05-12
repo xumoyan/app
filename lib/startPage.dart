@@ -53,7 +53,9 @@ class _StartPageState extends State<StartPage>
       toPage = () async {
         Navigator.of(context).pushNamedAndRemoveUntil(
             GuidePage.route, (route) => false,
-            arguments: {"storeKey": storeKey, "storage": storage});
+            arguments: {
+              "params": {"storeKey": storeKey, "storage": storage}
+            });
       };
     }
   }

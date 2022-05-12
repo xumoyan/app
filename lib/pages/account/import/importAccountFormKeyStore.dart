@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:polka_module/service/index.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -67,7 +68,8 @@ class _ImportAccountFormKeyStoreState extends State<ImportAccountFormKeyStore> {
 
   @override
   Widget build(BuildContext context) {
-    selected = (ModalRoute.of(context).settings.arguments as Map)["type"];
+    selected = (Utils.getParams(ModalRoute.of(context).settings.arguments)
+        as Map)["type"];
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'account');
     return Scaffold(
         appBar: AppBar(

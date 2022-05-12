@@ -1,5 +1,6 @@
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/store/types/transferData.dart';
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,9 @@ class TransferDetailPage extends StatelessWidget {
     final symbol = (service.plugin.networkState.tokenSymbol ?? [''])[0];
     final decimals = (service.plugin.networkState.tokenDecimals ?? [12])[0];
 
-    final TransferData tx = ModalRoute.of(context).settings.arguments;
+    final TransferData tx =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as TransferData;
     final amount = Fmt.priceFloor(double.parse(tx.amount), lengthMax: 4);
 
     final String txType = tx.from == service.keyring.current.address

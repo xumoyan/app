@@ -1,3 +1,4 @@
+import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,9 @@ class ExportResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'profile');
-    final SeedBackupData args = ModalRoute.of(context).settings.arguments;
+    final SeedBackupData args =
+        Utils.getParams(ModalRoute.of(context).settings.arguments)
+            as SeedBackupData;
 
     final hasDerivePath = args.type != 'keystore' && args.seed.contains('/');
     String seed = args.seed;

@@ -127,14 +127,15 @@ class _AssetsState extends State<AssetsPage> {
           final symbol =
               (widget.service.plugin.networkState.tokenSymbol ?? [''])[0];
           Navigator.of(context).pushNamed('/assets/token/transfer', arguments: {
-            'tokenNameId': symbol,
-            'address': data.address.address
+            "params": {'tokenNameId': symbol, 'address': data.address.address}
           });
           return;
         }
         Navigator.of(context).pushNamed(
           TransferPage.route,
-          arguments: TransferPageParams(address: data.address.address),
+          arguments: {
+            "params": TransferPageParams(address: data.address.address)
+          },
         );
         return;
       }

@@ -139,7 +139,8 @@ class _AdBannerState extends State<AdBanner> {
                     pageRoute: PageRouteParams(route, args: args),
                   );
                 } else {
-                  Navigator.of(context).pushNamed(route, arguments: args);
+                  Navigator.of(context)
+                      .pushNamed(route, arguments: {'params': args});
                 }
               } else if (e['isDapp'] == true) {
                 Navigator.of(context).pushNamed(
