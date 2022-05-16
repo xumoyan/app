@@ -1114,7 +1114,8 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
                   builder: (_, AsyncSnapshot<int> snapshot) {
                     if (snapshot.hasData && _service != null && apiInit) {
                       return FlutterBoostApp(routeFactory,
-                          appBuilder: appBuilder, initialRoute: '/');
+                          appBuilder: appBuilder,
+                          initialRoute: '/account/entry');
                     } else {
                       return Container(color: Theme.of(context).canvasColor);
                     }

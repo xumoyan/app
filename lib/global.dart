@@ -1,4 +1,4 @@
-String password = "Aa123456";
+String password = "Aa753421";
 String name = "bitpie_user";
 String path = "//44//354//0/0/0";
 String pathClient = "0";

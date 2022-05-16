@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:flutter/services.dart';
+import 'package:flutter_boost/flutter_boost.dart';
 import 'package:polka_module/common/consts.dart';
+import 'package:polka_module/global.dart';
 import 'package:polka_module/service/index.dart';
-import 'package:polka_module/store/types/polkaChannel.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,7 +12,6 @@ import 'package:polkawallet_sdk/api/apiKeyring.dart';
 import 'package:polkawallet_sdk/api/types/recoveryInfo.dart';
 import 'package:polkawallet_sdk/storage/types/keyPairData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
-import 'package:polkawallet_ui/components/passwordInputDialog.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 
 class ApiAccount {
@@ -23,6 +21,8 @@ class ApiAccount {
 
   final _biometricEnabledKey = 'biometric_enabled_';
   final _biometricPasswordKey = 'biometric_password_';
+
+  VoidCallback removeListener;
 
   Future<Map> importAccount({
     KeyType keyType = KeyType.mnemonic,
@@ -155,57 +155,20 @@ class ApiAccount {
     return null;
   }
 
+  Future<dynamic> getPasswordResult() async {
+    var result = BoostNavigator.instance.push("password");
+    result.then((value) => {
+          if (value != null) {debugPrint("${value}")}
+        });
+    return result;
+  }
+
   Future<String> getPassword(BuildContext context, KeyPairData acc) async {
-    BasicMessageChannel<String> channel =
-        BasicMessageChannel("BasicMessageChannelPlugin", StringCodec());
-
-    print("send message============${json.encode({'action': 'password'})}");
-    channel.send(json.encode({'action': 'password'}));
-
-    channel.setMessageHandler((message) => Future<String>(() {
-          print("message ===== $message");
-          return message;
-        }));
-
-    final bioPass = await getPasswordWithBiometricAuth(context, acc.pubKey);
-    final isClose = isCloseBiometricDisabled(acc.pubKey);
-
-    if (bioPass == null && !isClose) {
-      await showCupertinoDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            title: Text(
-                I18n.of(context).getDic(i18n_full_dic_app, 'assets')['note']),
-            content: Text(I18n.of(context)
-                .getDic(i18n_full_dic_app, 'account')['biometric.msg']),
-            actions: <Widget>[
-              CupertinoButton(
-                child: Text(
-                    I18n.of(context).getDic(i18n_full_dic_ui, 'common')['ok']),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          );
-        },
-      );
+    var result = await getPasswordResult();
+    if (result != null && result["password"]) {
+      return password;
     }
-    final password = await showCupertinoDialog(
-      context: context,
-      builder: (_) {
-        return PasswordInputDialog(
-          apiRoot.plugin.sdk.api,
-          title: Text(
-              I18n.of(context).getDic(i18n_full_dic_app, 'account')['unlock']),
-          account: acc,
-          userPass: bioPass == "can't" ? null : bioPass,
-        );
-      },
-    );
-    if (bioPass == null && !isClose && password != null) {
-      setBiometricEnabled(acc.pubKey);
-    }
-    return password;
+    return null;
   }
 
   Future<void> queryAddressIcons(List addresses) async {
