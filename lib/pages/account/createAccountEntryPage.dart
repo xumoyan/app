@@ -33,22 +33,28 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
 
   @override
   void initState() {
-    channel.setMessageHandler((message) => Future<String>(() {
-          print("message======$message");
-          setState(() {
-            _coinDetail = CoinDetail.fromJson(jsonDecode(message));
-          });
-          return message;
-        }));
+    // channel.setMessageHandler((message) => Future<String>(() {
+    //       print("message======$message");
+    //       setState(() {
+    //         _coinDetail = CoinDetail.fromJson(jsonDecode(message));
+    //       });
+    //       return message;
+    //     }));
     super.initState();
+    _coinDetail = CoinDetail.fromJson(jsonDecode(
+        "{\"balance\":\"0\",\"chainId\":0,\"coinCode\":\"polka_polkadot_dot\",\"coinEvmTokenId\":0,\"coinName\":\"polkdot\",\"customrpc\":false,\"decimals\":0,\"isFirst\":false,\"isFixed\":false,\"isOpen\":0,\"isSelect\":false,\"isSubLast\":false,\"level\":0,\"mnemonic\":\"coach dress fade spray suggest purse obey special spot own cabin match\",\"name\":\"noname-510471780374\",\"password\":\"248743\",\"pricePrecision\":2,\"reputation\":0,\"sortNum\":2099087,\"unitDecimal\":10}"));
   }
 
   String getCoinCode(String coinCode) {
-    if (coinCode.toUpperCase().startsWith(polkaPrefix)) {
-      var strArr = coinCode.split("_");
-      return strArr[strArr.length - 1].toUpperCase();
+    if (coinCode != null) {
+      if (coinCode.toUpperCase().startsWith(polkaPrefix)) {
+        var strArr = coinCode.split("_");
+        return strArr[strArr.length - 1].toUpperCase();
+      }
+      return coinCode;
     }
-    return coinCode;
+
+    return "";
   }
 
   void _changeLang(String code, AppService service) {
@@ -86,6 +92,7 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
                 _coinDetail.coinName, "", false, () async {
               if (_coinDetail.mnemonic != null &&
                   _coinDetail.mnemonic.isNotEmpty) {
+                channel.send("Loading");
                 Keyring _keyring = Keyring();
                 await _keyring.init(
                     widget.plugins.map((e) => e.basic.ss58).toSet().toList());
@@ -131,7 +138,7 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
                       .loadCache(_keyring.current, service.plugin.basic.name);
                 }
 
-                final connected = await service.plugin
+                await service.plugin
                     .start(_keyring, nodes: service.plugin.nodeList);
 
                 if (service.keyring.current == null ||
@@ -176,6 +183,8 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
                 _coinDetail.polkaInfo = json.encode(map);
 
                 channel.send(json.encode(CoinDetail.toJson(_coinDetail)));
+              } else {
+                channel.send("Not Spuurot");
               }
             })),
       ),

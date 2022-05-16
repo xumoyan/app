@@ -10,7 +10,7 @@ MessageData _$MessageDataFromJson(Map<String, dynamic> json) {
   return MessageData(
     json['file'] as String,
     json['banner'] as String,
-    DateTime.parse(json['time'] as String),
+    DateTime.parse((json['time'] as String).replaceAll("/", "-")),
     json['title'] as String,
     json['network'] as String,
     json['lang'] as String,

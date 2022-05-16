@@ -27,14 +27,6 @@ dependencies:
   # firebase_analytics: 8.3.0
   flutter_screenutil: ^5.0.0+2
   #  firebase_messaging: 10.0.5
-  polkawallet_plugin_kusama:
-    git:
-      url: https://github.com/polkawallet-io/polkawallet_plugin_kusama.git
-      ref: e9e7c2546a1a6241c55a064d2fa57987a9265051
-  polkawallet_plugin_chainx:
-    git:
-      url: https://github.com/chainx-org/polkawallet_plugin_chainx.git
-      ref: 2cc634bc4f0b873e7fe0801d5d3fba46756f5315
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0

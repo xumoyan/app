@@ -955,7 +955,7 @@ packages:
     source: hosted
     version: "2.1.2"
   polkawallet_plugin_chainx:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "../coding/polkawallet/polkawallet_plugin_chainx"
       relative: true
@@ -969,7 +969,7 @@ packages:
     source: path
     version: "0.0.1"
   polkawallet_plugin_kusama:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "../coding/polkawallet/polkawallet_plugin_kusama"
       relative: true
