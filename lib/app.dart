@@ -535,7 +535,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       if (store.settings.localeCode.isNotEmpty) {
         _changeLang(store.settings.localeCode);
       } else {
-        _changeLang(Localizations.localeOf(context).toString());
+        _changeLang('zh');
       }
     }
 
@@ -1115,15 +1115,17 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
             builder: (_) => FutureBuilder<int>(
                   future: _startApp(context),
                   builder: (_, AsyncSnapshot<int> snapshot) {
-                    if (setttingName == "/") {
+                    if (setttingName == "/account/entry") {
                       return FlutterBoostApp(routeFactory,
-                          appBuilder: appBuilder, initialRoute: '/');
+                          appBuilder: appBuilder,
+                          initialRoute: '/account/entry');
                     } else {
                       if (snapshot.hasData && _service != null && apiInit) {
                         return FlutterBoostApp(routeFactory,
-                            appBuilder: appBuilder, initialRoute: '/');
+                            appBuilder: appBuilder,
+                            initialRoute: '/account/entry');
                       } else {
-                        return Container(color: Theme.of(context).canvasColor);
+                        return Container(color: Colors.white);
                       }
                     }
                   },

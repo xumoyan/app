@@ -383,12 +383,6 @@ class _TransferPageState extends State<TransferPage> {
         txParams.call,
         TxSenderData(widget.service.keyring.current.address,
             widget.service.keyring.current.pubKey));
-
-    print("widget.service = ${widget.service}");
-    print("widget.service.plugin = ${widget.service.plugin}");
-    print("widget.service.plugin.sdk = ${widget.service.plugin.sdk}");
-    print("widget.service.plugin.sdk.api = ${widget.service.plugin.sdk.api}");
-
     final fee = await widget.service.plugin.sdk.api.tx
         .estimateFees(txInfo, txParams.params);
     if (mounted) {
@@ -734,10 +728,13 @@ class _TransferPageState extends State<TransferPage> {
         final colorGrey = Theme.of(context).unselectedWidgetColor;
 
         final labelStyle = Theme.of(context).textTheme.headline4;
+
         return Scaffold(
           appBar: AppBar(
               systemOverlayStyle: SystemUiOverlayStyle.dark,
-              title: Text('${dic['transfer']} $symbol'),
+              title: Text('${dic['transfer']} $symbol',
+                  style: TextStyle(
+                      color: Color.fromARGB(255, 51, 51, 51), fontSize: 17)),
               centerTitle: true,
               actions: isAcalaBridge
                   ? null
