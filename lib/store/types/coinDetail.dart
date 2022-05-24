@@ -46,4 +46,5 @@ abstract class _CoinDetail {
   String addressIndex = "";
   String signature = "";
   String polkaInfo = "";
+  int position = 99;
 }

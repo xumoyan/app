@@ -81,115 +81,118 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.transparent,
         body: SafeArea(
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        decoration: new BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
-        child: Visibility(
-          visible: _coinDetail != null,
-          child: ImportCoinItem(getCoinCode(_coinDetail.coinCode),
-              _coinDetail.coinName, "", false, () async {
-            if (_coinDetail.mnemonic != null &&
-                _coinDetail.mnemonic.isNotEmpty) {
-              channel.send("Loading");
-              Keyring _keyring = Keyring();
-              await _keyring.init(
-                  widget.plugins.map((e) => e.basic.ss58).toSet().toList());
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            child: Visibility(
+              visible: _coinDetail != null,
+              child: ImportCoinItem(
+                  getCoinCode(_coinDetail.coinCode),
+                  _coinDetail.coinName,
+                  "",
+                  false,
+                  _coinDetail.position, () async {
+                if (_coinDetail.mnemonic != null &&
+                    _coinDetail.mnemonic.isNotEmpty) {
+                  channel.send("Loading");
+                  Keyring _keyring = Keyring();
+                  await _keyring.init(
+                      widget.plugins.map((e) => e.basic.ss58).toSet().toList());
 
-              final storage = GetStorage(get_storage_container);
-              final store = AppStore(storage);
-              await store.init();
+                  final storage = GetStorage(get_storage_container);
+                  final store = AppStore(storage);
+                  await store.init();
 
-              final pluginIndex = widget.plugins
-                  .indexWhere((e) => e.basic.name == store.settings.network);
-              final service = AppService(
-                  widget.plugins,
-                  widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
-                  _keyring,
-                  store,
-                  widget.buildTarget);
-              service.init();
+                  final pluginIndex = widget.plugins.indexWhere(
+                      (e) => e.basic.name == store.settings.network);
+                  final service = AppService(
+                      widget.plugins,
+                      widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
+                      _keyring,
+                      store,
+                      widget.buildTarget);
+                  service.init();
 
-              if (service.store.settings.localeCode != null &&
-                  service.store.settings.localeCode.isNotEmpty) {
-                _changeLang(service.store.settings.localeCode, service);
-              } else {
-                _changeLang(
-                    Localizations.localeOf(context).toString(), service);
-              }
+                  if (service.store.settings.localeCode != null &&
+                      service.store.settings.localeCode.isNotEmpty) {
+                    _changeLang(service.store.settings.localeCode, service);
+                  } else {
+                    _changeLang(
+                        Localizations.localeOf(context).toString(), service);
+                  }
 
-              final useLocalJS = WalletApi.getPolkadotJSVersion(
-                    store.storage,
-                    service.plugin.basic.name,
-                    service.plugin.basic.jsCodeVersion,
-                  ) >
-                  service.plugin.basic.jsCodeVersion;
+                  final useLocalJS = WalletApi.getPolkadotJSVersion(
+                        store.storage,
+                        service.plugin.basic.name,
+                        service.plugin.basic.jsCodeVersion,
+                      ) >
+                      service.plugin.basic.jsCodeVersion;
 
-              await service.plugin.beforeStart(_keyring,
-                  jsCode: useLocalJS
-                      ? WalletApi.getPolkadotJSCode(
-                          store.storage, service.plugin.basic.name)
-                      : null,
-                  socketDisconnectedAction: () {});
+                  await service.plugin.beforeStart(_keyring,
+                      jsCode: useLocalJS
+                          ? WalletApi.getPolkadotJSCode(
+                              store.storage, service.plugin.basic.name)
+                          : null,
+                      socketDisconnectedAction: () {});
 
-              if (_keyring.keyPairs.length > 0) {
-                store.assets
-                    .loadCache(_keyring.current, service.plugin.basic.name);
-              }
+                  if (_keyring.keyPairs.length > 0) {
+                    store.assets
+                        .loadCache(_keyring.current, service.plugin.basic.name);
+                  }
 
-              await service.plugin
-                  .start(_keyring, nodes: service.plugin.nodeList);
+                  await service.plugin
+                      .start(_keyring, nodes: service.plugin.nodeList);
 
-              if (service.keyring.current == null ||
-                  service.keyring.current.address == null) {
-                print("new account");
-                service.store.account.setNewAccount(_coinDetail.name, password);
-                service.store.account.setNewAccountKey(_coinDetail.mnemonic);
+                  if (service.keyring.current == null ||
+                      service.keyring.current.address == null) {
+                    print("new account");
+                    service.store.account
+                        .setNewAccount(_coinDetail.name, password);
+                    service.store.account
+                        .setNewAccountKey(_coinDetail.mnemonic);
 
-                /// import account
-                var acc = await service.account.importAccount(
-                  keyType: KeyType.mnemonic,
-                  cryptoType: CryptoType.sr25519,
-                  derivePath: '',
-                );
+                    /// import account
+                    var acc = await service.account.importAccount(
+                      keyType: KeyType.mnemonic,
+                      cryptoType: CryptoType.sr25519,
+                      derivePath: '',
+                    );
 
-                await service.account.addAccount(
-                  json: acc,
-                  keyType: KeyType.mnemonic,
-                  cryptoType: CryptoType.sr25519,
-                  derivePath: '',
-                );
-                service.account.closeBiometricDisabled(acc['pubKey']);
-              }
+                    await service.account.addAccount(
+                      json: acc,
+                      keyType: KeyType.mnemonic,
+                      cryptoType: CryptoType.sr25519,
+                      derivePath: '',
+                    );
+                    service.account.closeBiometricDisabled(acc['pubKey']);
+                  }
 
-              print("new sign....");
-              final params = SignAsExtensionParam();
-              params.msgType = "pub(bytes.sign)";
-              params.request = {
-                "address": service.keyring.current.address,
-                "data": service.keyring.current.address,
-              };
-              print(params.request);
-              final res = await service.plugin.sdk.api.keyring
-                  .signAsExtension(password, params);
+                  print("new sign....");
+                  final params = SignAsExtensionParam();
+                  params.msgType = "pub(bytes.sign)";
+                  params.request = {
+                    "address": service.keyring.current.address,
+                    "data": service.keyring.current.address,
+                  };
+                  print(params.request);
+                  final res = await service.plugin.sdk.api.keyring
+                      .signAsExtension(password, params);
 
-              _coinDetail.signature = res.signature;
-              _coinDetail.address = service.keyring.current.address;
-              _coinDetail.addressIndex = pathClient;
-              Map<String, dynamic> map = service.keyring.current.toJson();
-              map["icon"] = null;
-              _coinDetail.polkaInfo = json.encode(map);
+                  _coinDetail.signature = res.signature;
+                  _coinDetail.address = service.keyring.current.address;
+                  _coinDetail.addressIndex = pathClient;
+                  Map<String, dynamic> map = service.keyring.current.toJson();
+                  map["icon"] = null;
+                  _coinDetail.polkaInfo = json.encode(map);
 
-              channel.send(json.encode(CoinDetail.toJson(_coinDetail)));
-            } else {
-              channel.send("Not Spuurot");
-            }
-          }),
-        ),
-      ),
-    ));
+                  channel.send(json.encode(CoinDetail.toJson(_coinDetail)));
+                } else {
+                  channel.send("Not Spuurot");
+                }
+              }),
+            ),
+          ),
+        ));
   }
 }
