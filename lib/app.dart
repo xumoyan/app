@@ -130,7 +130,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
   ThemeData _getAppTheme(MaterialColor color, {Color secondaryColor}) {
     return ThemeData(
       // backgroundColor: Color(0xFFF0ECE6),
-      scaffoldBackgroundColor: Color(0xFFF5F3F0),
+      scaffoldBackgroundColor: Color(0xFFFFFFFF),
       dividerColor: Color(0xFFD4D4D4),
       cardColor: Colors.white,
       toggleableActiveColor: Color(0xFF768FE1),
@@ -1115,15 +1115,13 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
             builder: (_) => FutureBuilder<int>(
                   future: _startApp(context),
                   builder: (_, AsyncSnapshot<int> snapshot) {
-                    if (setttingName == "/account/entry") {
+                    if (setttingName == "/") {
                       return FlutterBoostApp(routeFactory,
-                          appBuilder: appBuilder,
-                          initialRoute: '/account/entry');
+                          appBuilder: appBuilder, initialRoute: '/');
                     } else {
                       if (snapshot.hasData && _service != null && apiInit) {
                         return FlutterBoostApp(routeFactory,
-                            appBuilder: appBuilder,
-                            initialRoute: '/account/entry');
+                            appBuilder: appBuilder, initialRoute: '/');
                       } else {
                         return Container(color: Colors.white);
                       }

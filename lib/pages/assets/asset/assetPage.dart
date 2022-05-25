@@ -273,24 +273,12 @@ class _AssetPageState extends State<AssetPage> {
       appBar: AppBar(
         title: Text(
           symbol,
-          style: TextStyle(fontSize: 20, color: Colors.black87),
+          style: TextStyle(fontSize: 18, color: Color(0xFF333333)),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: BackBtn(),
-        actions: [
-          Padding(
-              padding: EdgeInsets.only(right: 16.w),
-              child: v3.IconButton(
-                  isBlueBg: true,
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: Theme.of(context).cardColor,
-                    size: 22,
-                  ),
-                  onPressed: _showAction)),
-        ],
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Observer(
