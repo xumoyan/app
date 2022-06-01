@@ -1,3 +1,4 @@
+import 'package:polka_module/common/components/assetTabbar.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:polka_module/pages/assets/asset/locksDetailPage.dart';
 import 'package:polka_module/pages/assets/asset/rewardsChart.dart';
@@ -27,6 +28,8 @@ import 'package:polkawallet_ui/pages/accountQrCodePage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
+import 'package:polkawallet_ui/components/v3/roundedCard.dart';
+import 'package:polkawallet_ui/components/v3/mainTabBar.dart';
 
 class AssetPage extends StatefulWidget {
   AssetPage(this.service);
@@ -191,9 +194,9 @@ class _AssetPageState extends State<AssetPage> {
     final txs = widget.service.store.assets.txs.toList();
     txs.retainWhere((e) {
       switch (_tab) {
-        case 1:
-          return e.to == widget.service.keyring.current.address;
         case 2:
+          return e.to == widget.service.keyring.current.address;
+        case 1:
           return e.from == widget.service.keyring.current.address;
         default:
           return true;
@@ -304,170 +307,143 @@ class _AssetPageState extends State<AssetPage> {
                 marketPriceList: _marketPriceList,
                 priceCurrency: widget.service.store.settings.priceCurrency,
               ),
-              Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 3.w),
-                          child: CardButton(
-                            icon: Padding(
-                              padding: EdgeInsets.only(left: 3),
-                              child: Image.asset(
-                                "assets/images/send.png",
-                                width: 37,
-                              ),
-                            ),
-                            text: dic['v3.send'],
-                            onPressed: () {
-                              if (widget.service.plugin.basic.name ==
-                                  para_chain_name_karura) {
-                                final symbol = (widget.service.plugin
-                                        .networkState.tokenSymbol ??
-                                    [''])[0];
-                                Navigator.of(context).pushNamed(
-                                    '/assets/token/transfer',
-                                    arguments: {
-                                      'params': {'tokenNameId': symbol}
-                                    });
-                                return;
-                              }
-                              Navigator.pushNamed(context, TransferPage.route);
-                            },
-                          ),
-                        ),
+              Container(
+                height: 64.h,
+                child: RoundedCard(
+                    margin: EdgeInsets.only(left: 13.w, right: 13.w, top: 15.h),
+                    padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                    radius: const BorderRadius.only(
+                        topLeft: const Radius.circular(8),
+                        topRight: const Radius.circular(8)),
+                    boxShadow: BoxShadow(
+                      color: Color(0x30000000),
+                      blurRadius: 1.0,
+                      spreadRadius: 0.0,
+                      offset: Offset(
+                        1.0,
+                        -1,
                       ),
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 3.w),
-                          child: CardButton(
-                            icon:
-                                Image.asset("assets/images/qr.png", width: 37),
-                            text: dic['receive'],
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                  context, AccountQrCodePage.route);
-                            },
-                          ),
-                        ),
-                      ),
-                      Fmt.balanceInt((balancesInfo?.lockedBalance ?? 0)
-                                  .toString()) >
-                              BigInt.one
-                          ? Expanded(
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 3.w),
-                                child: CardButton(
-                                  icon: Image.asset("assets/images/unlock.png",
-                                      width: 37),
-                                  text: dic['unlock'],
-                                  onPressed: Fmt.balanceInt(
-                                              (balancesInfo?.lockedBalance ?? 0)
-                                                  .toString()) >
-                                          BigInt.one
-                                      ? () {
-                                          Navigator.pushNamed(
-                                              context, LocksDetailPage.route);
-                                        }
-                                      : null,
-                                ),
-                              ),
-                            )
-                          : Container(),
-                    ],
-                  )),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      BorderedTitle(title: dic['history']),
-                      Row(
-                        children: [
-                          Container(
-                            width: 36.w,
-                            height: 28.h,
-                            margin: EdgeInsets.only(right: 8.w),
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              image: DecorationImage(
-                                  image: AssetImage("assets/images/bg_tag.png"),
-                                  fit: BoxFit.fill),
-                            ),
-                            child: Center(
-                              child: Text(
-                                  dic[_tab == 0
-                                      ? 'all'
-                                      : _tab == 1
-                                          ? "in"
-                                          : "out"],
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headline5
-                                      .copyWith(
-                                          color: Theme.of(context)
-                                              .toggleableActiveColor,
-                                          fontWeight: FontWeight.w600)),
-                            ),
-                          ),
-                          GestureDetector(
-                              onTap: () {
-                                showCupertinoModalPopup(
-                                    context: context,
-                                    builder: (context) {
-                                      return ShowCustomAlterWidget(
-                                          confirmCallback: (value) {
-                                            setState(() {
-                                              if (value == dic['all']) {
-                                                _tab = 0;
-                                              } else if (value == dic['in']) {
-                                                _tab = 1;
-                                              } else {
-                                                _tab = 2;
-                                              }
-                                            });
-                                          },
-                                          cancel: I18n.of(context).getDic(
-                                              i18n_full_dic_ui,
-                                              'common')['cancel'],
-                                          options: [
-                                            dic['all'],
-                                            dic['in'],
-                                            dic['out']
-                                          ]);
-                                    });
-                              },
-                              child: v3.IconButton(
-                                icon: SvgPicture.asset(
-                                  'assets/images/icon_screening.svg',
-                                  color: Color(0xFF979797),
-                                  width: 22.h,
-                                ),
-                              ))
-                        ],
-                      )
-                    ],
-                  )),
-              Divider(
-                height: 1,
+                    ),
+                    child: AssetTabbar(
+                      tabs: {"全部": false, "转出": false, "转入": false},
+                      activeTab: _tab,
+                      onTap: (i) {
+                        setState(() {
+                          _tab = i;
+                        });
+                      },
+                    )),
               ),
               Expanded(
-                child: Container(
-                  color: Theme.of(context).cardColor,
-                  child: txs == null
-                      ? RefreshIndicator(
-                          key: _refreshKey,
-                          onRefresh: _refreshData,
-                          child: ListView(
-                            physics: BouncingScrollPhysics(),
-                            controller: _scrollController,
-                            children: [..._buildTxList()],
-                          ),
-                        )
-                      : txs,
+                  child: Container(
+                transform: Matrix4.translationValues(0, -2, 0),
+                child: RoundedCard(
+                  margin: EdgeInsets.only(left: 13.w, right: 13.w),
+                  padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                  radius: const BorderRadius.only(
+                      bottomLeft: const Radius.circular(8),
+                      bottomRight: const Radius.circular(8)),
+                  boxShadow: BoxShadow(
+                    color: Color(0x30000000),
+                    blurRadius: 1.0,
+                    spreadRadius: 0.0,
+                    offset: Offset(
+                      1,
+                      2,
+                    ),
+                  ),
+                  child: Container(
+                    margin: EdgeInsets.only(left: 13.w, right: 13.w),
+                    color: Theme.of(context).cardColor,
+                    child: txs == null
+                        ? RefreshIndicator(
+                            key: _refreshKey,
+                            onRefresh: _refreshData,
+                            child: ListView(
+                              physics: BouncingScrollPhysics(),
+                              controller: _scrollController,
+                              children: [..._buildTxList()],
+                            ),
+                          )
+                        : txs,
+                  ),
                 ),
-              )
+              )),
+              Container(
+                  margin: EdgeInsets.only(top: 15.h),
+                  height: 80.h,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                          child: GestureDetector(
+                        onTap: () {
+                          if (widget.service.plugin.basic.name ==
+                              para_chain_name_karura) {
+                            final symbol = (widget
+                                    .service.plugin.networkState.tokenSymbol ??
+                                [''])[0];
+                            Navigator.of(context).pushNamed(
+                                '/assets/token/transfer',
+                                arguments: {
+                                  'params': {'tokenNameId': symbol}
+                                });
+                            return;
+                          }
+                          Navigator.pushNamed(context, TransferPage.route);
+                        },
+                        child: Container(
+                          height: 60.h,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image: new AssetImage(
+                                    'assets/images/icon_details_bigbutton.png'),
+                                fit: BoxFit.fill),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "转账",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                                textAlign: TextAlign.center,
+                              )
+                            ],
+                          ),
+                        ),
+                      )),
+                      Expanded(
+                          child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, AccountQrCodePage.route);
+                        },
+                        child: Container(
+                          height: 60.h,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image: new AssetImage(
+                                    'assets/images/icon_wireframe_bigbutton.png'),
+                                fit: BoxFit.fill),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "转账",
+                                style: TextStyle(
+                                    color:
+                                        Color.fromARGB(0xFF, 0x39, 0x41, 0x60),
+                                    fontSize: 14),
+                                textAlign: TextAlign.center,
+                              )
+                            ],
+                          ),
+                        ),
+                      ))
+                    ],
+                  )),
             ],
           );
         },
@@ -500,7 +476,6 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
-
     final balance = Fmt.balanceTotal(balancesInfo);
 
     String tokenPrice;
@@ -508,142 +483,120 @@ class BalanceCard extends StatelessWidget {
       tokenPrice =
           Fmt.priceFloor(marketPrices * Fmt.bigIntToDouble(balance, decimals));
     }
+    final titleColor = Color.fromARGB(0xFF, 0x33, 0x33, 0x33);
 
-    final titleColor = Theme.of(context).cardColor;
-    return Container(
-      margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.w),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(const Radius.circular(16)),
-        gradient: LinearGradient(
-          colors: bgColors ??
-              [Theme.of(context).primaryColor, Theme.of(context).hoverColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        // image: backgroundImage != null
-        //     ? DecorationImage(
-        //         image: backgroundImage,
-        //         fit: BoxFit.cover,
-        //       )
-        //     : null,
-        boxShadow: [
-          BoxShadow(
-            // color: primaryColor.withAlpha(100),
-            color: Color(0x5D000000),
-            blurRadius: 3.0,
-            spreadRadius: 0.0,
-            offset: Offset(2.0, 2.0),
-          )
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(bottom: 22.h),
-              child: Row(
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.fromLTRB(4.w, 0, 4.w, 0),
+          padding: EdgeInsets.all(9.w),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+                image: new AssetImage('assets/images/icon_details_button.png'),
+                fit: BoxFit.fill),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
-                      height: 45.w,
-                      width: 45.w,
-                      margin: EdgeInsets.only(right: 8.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(22.5.w)),
-                      ),
+                      height: 25.w,
+                      width: 25.w,
+                      margin: EdgeInsets.only(left: 21.w, top: 16.h),
                       child: icon),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        Fmt.token(balance, decimals, length: 8),
-                        style: TextStyle(
-                            color: titleColor,
-                            fontSize: 20,
-                            letterSpacing: -0.8,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: "TitilliumWeb"),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Visibility(
-                        visible: tokenPrice != null,
+                      Container(
+                        margin: EdgeInsets.only(left: 10.w, top: 16.h),
+                        height: 17.h,
                         child: Text(
-                          '≈ ${Utils.currencySymbol(priceCurrency)} ${tokenPrice ?? '--.--'}',
-                          style: Theme.of(context).textTheme.headline6.copyWith(
-                              color: titleColor,
-                              letterSpacing: -0.8,
-                              fontWeight: FontWeight.w600),
+                          symbol,
+                          style: TextStyle(color: Colors.white, fontSize: 17),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ],
-              )),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    priceItemBuild(
-                        SvgPicture.asset(
-                          'assets/images/transferrable_icon.svg',
-                          color: titleColor,
-                        ),
-                        dic['available'],
-                        Fmt.priceFloorBigInt(
-                          Fmt.balanceInt(
-                              (balancesInfo?.availableBalance ?? 0).toString()),
-                          decimals,
-                          lengthMax: 4,
-                        ),
-                        titleColor),
-                    priceItemBuild(
-                        SvgPicture.asset(
-                          'assets/images/locked_icon.svg',
-                          color: titleColor,
-                        ),
-                        dic['locked'],
-                        Fmt.priceFloorBigInt(
-                          Fmt.balanceInt(
-                              (balancesInfo?.lockedBalance ?? 0).toString()),
-                          decimals,
-                          lengthMax: 4,
-                        ),
-                        titleColor),
-                    priceItemBuild(
-                        SvgPicture.asset(
-                          'assets/images/reversed_icon.svg',
-                          color: titleColor,
-                        ),
-                        dic['reserved'],
-                        Fmt.priceFloorBigInt(
-                          Fmt.balanceInt(
-                              (balancesInfo?.reservedBalance ?? 0).toString()),
-                          decimals,
-                          lengthMax: 4,
-                        ),
-                        titleColor),
-                  ],
-                ),
-                flex: 1,
               ),
-              Expanded(
-                child: marketPriceList != null
-                    ? Container(
-                        width: MediaQuery.of(context).size.width / 3,
-                        alignment: Alignment.centerRight,
-                        child: RewardsChart.withData(
-                            getTimeSeriesAmounts(marketPriceList),
-                            MediaQuery.of(context).size.width / 4))
-                    : Container(width: MediaQuery.of(context).size.width / 3),
-                flex: 0,
-              )
+              Row(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(left: 21.w, top: 5.h, bottom: 16.h),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(
+                          Fmt.token(balance, decimals, length: 8),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              letterSpacing: -0.8),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(left: 10.w),
+                          child: Visibility(
+                            visible: tokenPrice != null,
+                            child: Text(
+                              '≈ ${Utils.currencySymbol(priceCurrency)} ${tokenPrice ?? '--.--'}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline6
+                                  .copyWith(
+                                      color: Colors.white,
+                                      letterSpacing: -0.8,
+                                      fontSize: 11),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+        Container(
+            child: RoundedCard(
+          margin: EdgeInsets.only(left: 13.w, right: 13.w, top: 4.h),
+          child: Column(
+            children: [
+              priceItemBuild(
+                  dic['available'],
+                  Fmt.priceFloorBigInt(
+                    Fmt.balanceInt(
+                        (balancesInfo?.availableBalance ?? 0).toString()),
+                    decimals,
+                    lengthMax: 4,
+                  ),
+                  titleColor),
+              priceItemBuild(
+                  dic['locked'],
+                  Fmt.priceFloorBigInt(
+                    Fmt.balanceInt(
+                        (balancesInfo?.lockedBalance ?? 0).toString()),
+                    decimals,
+                    lengthMax: 4,
+                  ),
+                  titleColor),
+              priceItemBuild(
+                  dic['reserved'],
+                  Fmt.priceFloorBigInt(
+                    Fmt.balanceInt(
+                        (balancesInfo?.reservedBalance ?? 0).toString()),
+                    decimals,
+                    lengthMax: 4,
+                  ),
+                  titleColor),
+            ],
+          ),
+        ))
+      ],
     );
   }
 
@@ -656,38 +609,32 @@ class BalanceCard extends StatelessWidget {
     return datas;
   }
 
-  Widget priceItemBuild(Widget icon, String title, String price, Color color) {
+  Widget priceItemBuild(String title, String price, Color color) {
     return Padding(
         padding: EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                height: 16.w,
-                width: 16.w,
-                margin: EdgeInsets.only(right: 8.w),
-                child: icon),
-            Text(
-              title,
-              style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "TitilliumWeb"),
-            ),
-            Expanded(
-              child: Text(
-                price,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: "TitilliumWeb"),
-              ),
-            )
-          ],
-        ));
+        child: Container(
+            padding: EdgeInsets.only(left: 21.w, right: 21.w),
+            height: 32.h,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                      color: Color.fromARGB(0xFF, 0x66, 0x66, 0x66),
+                      fontSize: 14),
+                ),
+                Expanded(
+                  child: Text(
+                    price,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                        color: Color.fromARGB(0xFF, 0x33, 0x33, 0x33),
+                        fontSize: 16),
+                  ),
+                )
+              ],
+            )));
   }
 }
 
