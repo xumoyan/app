@@ -206,16 +206,21 @@ class _AssetPageState extends State<AssetPage> {
     res.addAll(txs.map((i) {
       return Column(
         children: [
-          TransferListItem(
-            data: i,
-            token: symbol,
-            isOut: i.from == widget.service.keyring.current.address,
-            crossChain: i.to == bridge_account['acala'] ? 'Acala Bridge' : null,
-            hasDetail: true,
-          ),
-          Divider(
-            height: 1,
-          )
+          Container(
+              margin: EdgeInsets.only(bottom: 12.h),
+              height: 70.h,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(const Radius.circular(8)),
+                color: Color.fromARGB(0xFF, 0xF6, 0xF9, 0xFD),
+              ),
+              child: TransferListItem(
+                data: i,
+                token: symbol,
+                isOut: i.from == widget.service.keyring.current.address,
+                crossChain:
+                    i.to == bridge_account['acala'] ? 'Acala Bridge' : null,
+                hasDetail: true,
+              ))
         ],
       );
     }));
@@ -325,7 +330,11 @@ class _AssetPageState extends State<AssetPage> {
                       ),
                     ),
                     child: AssetTabbar(
-                      tabs: {"全部": false, "转出": false, "转入": false},
+                      tabs: {
+                        dic['tab.all']: false,
+                        dic['tab.out']: false,
+                        dic['tab.in']: false
+                      },
                       activeTab: _tab,
                       onTap: (i) {
                         setState(() {
@@ -353,7 +362,7 @@ class _AssetPageState extends State<AssetPage> {
                     ),
                   ),
                   child: Container(
-                    margin: EdgeInsets.only(left: 13.w, right: 13.w),
+                    margin: EdgeInsets.only(left: 4.w, right: 4.w),
                     color: Theme.of(context).cardColor,
                     child: txs == null
                         ? RefreshIndicator(
@@ -405,7 +414,7 @@ class _AssetPageState extends State<AssetPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "转账",
+                                dic['transfer'],
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 14),
                                 textAlign: TextAlign.center,
@@ -431,7 +440,7 @@ class _AssetPageState extends State<AssetPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "转账",
+                                dic['receive'],
                                 style: TextStyle(
                                     color:
                                         Color.fromARGB(0xFF, 0x39, 0x41, 0x60),
@@ -660,47 +669,97 @@ class TransferListItem extends StatelessWidget {
         Fmt.address(address) ?? data.extrinsicIndex ?? Fmt.address(data.hash);
     final colorFailed = Theme.of(context).unselectedWidgetColor;
     final amount = Fmt.priceFloor(double.parse(data.amount), lengthFixed: 4);
-    return ListTile(
-      leading: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          data.success
-              ? isOut
-                  ? TransferIcon(type: TransferIconType.rollOut)
-                  : TransferIcon(type: TransferIconType.rollIn)
-              : TransferIcon(type: TransferIconType.failure)
-        ],
-      ),
-      title: Text(
-        '$title${crossChain != null ? ' ($crossChain)' : ''}',
-        style: Theme.of(context).textTheme.headline5.copyWith(
-              fontFamily: 'SF_Pro',
-            ),
-      ),
-      subtitle: Text(
-        Fmt.dateTime(
-            DateTime.fromMillisecondsSinceEpoch(data.blockTimestamp * 1000)),
-        style: Theme.of(context)
-            .textTheme
-            .headline6
-            .copyWith(fontWeight: FontWeight.w300, color: Color(0xBF565554)),
-      ),
-      trailing: Container(
-        width: 110,
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                '${isOut ? '-' : '+'} $amount',
-                style: Theme.of(context).textTheme.headline5.copyWith(
-                    color: Theme.of(context).toggleableActiveColor,
-                    fontWeight: FontWeight.w600),
-                textAlign: TextAlign.right,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return GestureDetector(
+      child: Container(
+          margin: EdgeInsets.only(left: 12, right: 12),
+          child: Row(
+            children: [
+              data.success
+                  ? isOut
+                      ? TransferIcon(type: TransferIconType.rollOut)
+                      : TransferIcon(type: TransferIconType.rollIn)
+                  : TransferIcon(type: TransferIconType.failure),
+              Expanded(
+                  child: Container(
+                      margin: EdgeInsets.only(left: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              child: Container(
+                            margin: EdgeInsets.only(top: 10, right: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      '$title${crossChain != null ? ' ($crossChain)' : ''}',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                          color: Color.fromARGB(
+                                              0xFF, 0x33, 0x33, 0x33),
+                                          fontSize: 12),
+                                    ),
+                                    Container(
+                                        margin: EdgeInsets.only(left: 5),
+                                        child: GestureDetector(
+                                          child: Image.asset(
+                                            "assets/images/icon_adress_magnifier_b.png",
+                                            width: 14,
+                                            height: 14,
+                                          ),
+                                          onTap: () {
+                                            showCupertinoModalPopup(
+                                                context: context,
+                                                builder: (context) {
+                                                  return ShowCustomAlterWidget(
+                                                    confirmCallback: (value) {},
+                                                    cancel: '取消',
+                                                    options: ["1"],
+                                                  );
+                                                });
+                                          },
+                                        ))
+                                  ],
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(bottom: 5, top: 3),
+                                  child: Text(
+                                      Fmt.getRelativeDate(
+                                          data.blockTimestamp * 1000,
+                                          locale: I18n.of(context)
+                                              .locale
+                                              .languageCode),
+                                      style: TextStyle(
+                                          color: Color.fromARGB(
+                                              0xFF, 0x99, 0x99, 0x99),
+                                          fontSize: 11)),
+                                )
+                              ],
+                            ),
+                          )),
+                          Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(top: 10),
+                                child: Text(
+                                  '${isOut ? '-' : '+'} $amount $token',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: isOut
+                                          ? Color(0xff00BE75)
+                                          : Color(0xff5680E0)),
+                                  textAlign: TextAlign.right,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      )))
+            ],
+          )),
       onTap: hasDetail
           ? () {
               Navigator.pushNamed(

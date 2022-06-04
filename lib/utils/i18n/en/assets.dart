@@ -111,4 +111,7 @@ const Map<String, String> enAssets = {
   'v3.changeNetwork.ing': 'Changing to',
   'v3.my': 'My',
   'v3.tap': 'TAP',
+  'tab.all': 'All',
+  'tab.in': 'Receive',
+  'tab.out': 'Send',
 };

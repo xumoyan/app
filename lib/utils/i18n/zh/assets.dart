@@ -103,4 +103,7 @@ const Map<String, String> zhAssets = {
   'v3.changeNetwork.ing': '正在切换至',
   'v3.my': '我的',
   'v3.tap': '切换',
+  'tab.all': '全部',
+  'tab.in': '转入',
+  'tab.out': '转出',
 };

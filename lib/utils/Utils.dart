@@ -1,6 +1,7 @@
 import 'package:polka_module/app.dart';
 import 'package:polka_module/common/consts.dart';
 import 'package:package_info/package_info.dart';
+import 'package:intl/intl.dart';
 
 class Utils {
   static Future<int> getBuildNumber() async {
