@@ -15,9 +15,6 @@ void main() async {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-  SystemUiOverlayStyle systemUiOverlayStyle =
-      SystemUiOverlayStyle(statusBarColor: Colors.transparent);
-  SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
 
   await GetStorage.init(get_storage_container);
   final plugins = [

@@ -30,4 +30,21 @@ class Utils {
     }
     return null;
   }
+
+  static String getCurrencySymbol(String currency) {
+    switch (currency) {
+      case "USD":
+        return "\$";
+      case "CNY":
+        return "¥";
+      case "EUR":
+        return "€";
+      case "JPY":
+        return "円";
+      case "HKD":
+        return "HKD";
+      default:
+        return "¥";
+    }
+  }
 }

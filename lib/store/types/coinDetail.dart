@@ -47,4 +47,6 @@ abstract class _CoinDetail {
   String signature = "";
   String polkaInfo = "";
   int position = 99;
+  String currency = "CNY";
+  String language = "zh";
 }

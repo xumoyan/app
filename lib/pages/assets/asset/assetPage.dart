@@ -1,35 +1,30 @@
+import 'package:flutter/services.dart';
 import 'package:polka_module/common/components/assetTabbar.dart';
 import 'package:polka_module/common/consts.dart';
-import 'package:polka_module/pages/assets/asset/locksDetailPage.dart';
 import 'package:polka_module/pages/assets/asset/rewardsChart.dart';
 import 'package:polka_module/pages/assets/transfer/detailPage.dart';
 import 'package:polka_module/pages/assets/transfer/transferPage.dart';
 import 'package:polka_module/service/index.dart';
 import 'package:polka_module/service/walletApi.dart';
 import 'package:polka_module/store/types/transferData.dart';
-import 'package:polka_module/utils/ShowCustomAlterWidget.dart';
 import 'package:polka_module/utils/Utils.dart';
 import 'package:polka_module/utils/i18n/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:polkawallet_sdk/api/subscan.dart';
 import 'package:polkawallet_sdk/api/types/balanceData.dart';
 import 'package:polkawallet_sdk/utils/i18n.dart';
 import 'package:polkawallet_ui/components/TransferIcon.dart';
 import 'package:polkawallet_ui/components/listTail.dart';
 import 'package:polkawallet_ui/components/v3/back.dart';
-import 'package:polkawallet_ui/components/v3/borderedTitle.dart';
-import 'package:polkawallet_ui/components/v3/cardButton.dart';
-import 'package:polkawallet_ui/components/v3/index.dart' as v3;
 import 'package:polkawallet_ui/pages/accountQrCodePage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:polkawallet_ui/utils/index.dart';
 import 'package:polkawallet_ui/components/v3/roundedCard.dart';
-import 'package:polkawallet_ui/components/v3/mainTabBar.dart';
+import 'package:polka_module/store/types/transferPageParams.dart';
 
 class AssetPage extends StatefulWidget {
   AssetPage(this.service);
@@ -144,6 +139,11 @@ class _AssetPageState extends State<AssetPage> {
   @override
   void initState() {
     super.initState();
+
+    SystemUiOverlayStyle systemUiOverlayStyle = SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.dark);
+    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
 
     WalletApi.getMarketPriceList(
             (widget.service.plugin.networkState.tokenSymbol ?? [''])[0], 7)
@@ -284,11 +284,12 @@ class _AssetPageState extends State<AssetPage> {
           style: TextStyle(fontSize: 18, color: Color(0xFF333333)),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFF5F6F8),
         elevation: 0,
         leading: BackBtn(),
+        leadingWidth: 60,
       ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Color(0xFFF5F6F8),
       body: Observer(
         builder: (_) {
           BalanceData balancesInfo = widget.service.plugin.balances.native;
@@ -696,31 +697,12 @@ class TransferListItem extends StatelessWidget {
                                     Text(
                                       '$title${crossChain != null ? ' ($crossChain)' : ''}',
                                       textAlign: TextAlign.left,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           color: Color.fromARGB(
                                               0xFF, 0x33, 0x33, 0x33),
                                           fontSize: 12),
-                                    ),
-                                    Container(
-                                        margin: EdgeInsets.only(left: 5),
-                                        child: GestureDetector(
-                                          child: Image.asset(
-                                            "assets/images/icon_adress_magnifier_b.png",
-                                            width: 14,
-                                            height: 14,
-                                          ),
-                                          onTap: () {
-                                            showCupertinoModalPopup(
-                                                context: context,
-                                                builder: (context) {
-                                                  return ShowCustomAlterWidget(
-                                                    confirmCallback: (value) {},
-                                                    cancel: '取消',
-                                                    options: ["1"],
-                                                  );
-                                                });
-                                          },
-                                        ))
+                                    )
                                   ],
                                 ),
                                 Container(

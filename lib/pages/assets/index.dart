@@ -35,6 +35,7 @@ import 'package:polkawallet_ui/pages/scanPage.dart';
 import 'package:polkawallet_ui/utils/format.dart';
 import 'package:polkawallet_ui/utils/i18n.dart';
 import 'package:rive/rive.dart';
+import 'package:polka_module/store/types/transferPageParams.dart';
 
 class AssetsPage extends StatefulWidget {
   AssetsPage(
@@ -134,7 +135,8 @@ class _AssetsState extends State<AssetsPage> {
         Navigator.of(context).pushNamed(
           TransferPage.route,
           arguments: {
-            "params": TransferPageParams(address: data.address.address)
+            "params":
+                TransferPageParams.fromJson({"address": data.address.address})
           },
         );
         return;

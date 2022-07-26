@@ -43,7 +43,9 @@ CoinDetail _$CoinDetailFromJson(Map<String, dynamic> json) {
     ..addressIndex = json['addressIndex'] as String
     ..signature = json['signature'] as String
     ..polkaInfo = json['polkaInfo'] as String
-    ..position = json['position'] as int;
+    ..position = json['position'] as int
+    ..currency = json['currency'] as String
+    ..language = json['language'] as String;
 }
 
 Map<String, dynamic> _$CoinDetailToJson(CoinDetail instance) =>
@@ -84,4 +86,6 @@ Map<String, dynamic> _$CoinDetailToJson(CoinDetail instance) =>
       'signature': instance.signature,
       'polkaInfo': instance.polkaInfo,
       'position': instance.position,
+      'currency': instance.currency,
+      'language': instance.language,
     };
