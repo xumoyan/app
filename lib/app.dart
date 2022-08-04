@@ -122,9 +122,6 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
   BuildContext _homePageContext;
   PageRouteParams _autoRoutingParams;
 
-  bool apiInit = false;
-  bool isStarting = false;
-
   String setttingName = "";
 
   ThemeData _getAppTheme(MaterialColor color, {Color secondaryColor}) {
@@ -345,7 +342,6 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
 
   Future<void> _changeNetwork(PolkawalletPlugin network,
       {NetworkParams node}) async {
-    print("network.basic.name ====== ${network.basic.name}");
     _dropsServiceCancel();
     setState(() {
       _connectedNode = null;
@@ -386,13 +382,10 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       });
     });
 
-    print("change ========= 33");
-
     setState(() {
       _service = service;
     });
 
-    print("_service ====== ${_service.plugin.basic.name}");
     _startPlugin(service, node: node);
   }
 
@@ -440,20 +433,20 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
     _autoRoutingParams = pageRoute;
   }
 
-  Future<void> _initNetwork(String networkName,
+  Future<AppService> _initNetwork(String networkName,
       {NetworkParams node, PageRouteParams pageRoute}) async {
     final isNetworkChanged = networkName != _service.plugin.basic.name;
 
     if (isNetworkChanged) {
-      print("change ========= 11");
       await _changeNetwork(
           widget.plugins.firstWhere((e) => e.basic.name == networkName),
           node: node);
-      print("change ========= 22");
       await _service.store.assets.loadCache(_keyring.current, networkName);
 
       _autoRoutingParams = pageRoute;
+      return _service;
     }
+    return _service;
   }
 
   Future<void> _changeNode(NetworkParams node) async {
@@ -523,79 +516,66 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
   }
 
   Future<int> _startApp(BuildContext context) async {
-    if (!isStarting) {
+    if (_keyring == null) {
+      _keyring = Keyring();
+      await _keyring
+          .init(widget.plugins.map((e) => e.basic.ss58).toSet().toList());
+
+      final storage = GetStorage(get_storage_container);
+      final store = AppStore(storage);
+      await store.init();
+
+      // await _showGuide(context, storage);
+
+      final pluginIndex = widget.plugins
+          .indexWhere((e) => e.basic.name == store.settings.network);
+      final service = AppService(
+          widget.plugins,
+          widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
+          _keyring,
+          store,
+          WalletApp.buildTarget);
+      service.init();
       setState(() {
-        isStarting = true;
+        _store = store;
+        _service = service;
+        _theme = _getAppTheme(
+          service.plugin.basic.primaryColor,
+          secondaryColor: service.plugin.basic.gradientColor,
+        );
       });
-      print("_startApp==============_startApp");
-      if (_keyring == null) {
-        _keyring = Keyring();
-        await _keyring
-            .init(widget.plugins.map((e) => e.basic.ss58).toSet().toList());
 
-        final storage = GetStorage(get_storage_container);
-        final store = AppStore(storage);
-        await store.init();
-
-        // await _showGuide(context, storage);
-
-        final pluginIndex = widget.plugins
-            .indexWhere((e) => e.basic.name == store.settings.network);
-        final service = AppService(
-            widget.plugins,
-            widget.plugins[pluginIndex > -1 ? pluginIndex : 0],
-            _keyring,
-            store,
-            WalletApp.buildTarget);
-        service.init();
-        setState(() {
-          _store = store;
-          _service = service;
-          _theme = _getAppTheme(
-            service.plugin.basic.primaryColor,
-            secondaryColor: service.plugin.basic.gradientColor,
-          );
-        });
-
-        if (store.settings.localeCode.isNotEmpty) {
-          _changeLang(store.settings.localeCode);
-        } else {
-          _changeLang(null);
-        }
+      if (store.settings.localeCode.isNotEmpty) {
+        _changeLang(store.settings.localeCode);
+      } else {
+        _changeLang(null);
       }
 
-      if (!apiInit) {
-        final useLocalJS = WalletApi.getPolkadotJSVersion(
-              _store.storage,
-              _service.plugin.basic.name,
-              _service.plugin.basic.jsCodeVersion,
-            ) >
-            _service.plugin.basic.jsCodeVersion;
+      final useLocalJS = WalletApi.getPolkadotJSVersion(
+            _store.storage,
+            _service.plugin.basic.name,
+            _service.plugin.basic.jsCodeVersion,
+          ) >
+          _service.plugin.basic.jsCodeVersion;
 
-        await _service.plugin.beforeStart(_keyring,
-            jsCode: useLocalJS
-                ? WalletApi.getPolkadotJSCode(
-                    _store.storage, _service.plugin.basic.name)
-                : null, socketDisconnectedAction: () {
-          UI.throttle(() {
-            _dropsServiceCancel();
-            _restartWebConnect(_service);
-          });
+      await _service.plugin.beforeStart(_keyring,
+          jsCode: useLocalJS
+              ? WalletApi.getPolkadotJSCode(
+                  _store.storage, _service.plugin.basic.name)
+              : null, socketDisconnectedAction: () {
+        UI.throttle(() {
+          _dropsServiceCancel();
+          _restartWebConnect(_service);
         });
+      });
 
-        if (_keyring.keyPairs.length > 0) {
-          _store.assets.loadCache(_keyring.current, _service.plugin.basic.name);
-        }
-        await _startPlugin(_service);
-        setState(() {
-          apiInit = true;
-          isStarting = false;
-        });
+      if (_keyring.keyPairs.length > 0) {
+        _store.assets.loadCache(_keyring.current, _service.plugin.basic.name);
       }
-      return _keyring.allAccounts.length;
-    } else {
-      return 0;
+      await _startPlugin(_service);
     }
+
+    return _keyring.allAccounts.length;
   }
 
   Map<String, FlutterBoostRouteFactory> _getRoutes() {
@@ -1143,7 +1123,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
             builder: (_) => FutureBuilder<int>(
                   future: _startApp(context),
                   builder: (_, AsyncSnapshot<int> snapshot) {
-                    if (snapshot.hasData && _service != null && apiInit) {
+                    if (snapshot.hasData && _service != null) {
                       return FlutterBoostApp(routeFactory,
                           appBuilder: appBuilder, initialRoute: initialRoute);
                     } else {

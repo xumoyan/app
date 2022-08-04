@@ -35,17 +35,12 @@ CoinDetail _$CoinDetailFromJson(Map<String, dynamic> json) {
     ..chainId = json['chainId'] as int
     ..rpcHost = json['rpcHost'] as String
     ..blacklistInfo = json['blacklistInfo'] as String
-    ..mnemonic = json['mnemonic'] as String
-    ..password = json['password'] as String
-    ..name = json['name'] as String
-    ..isSelect = json['isSelect'] as bool
     ..address = json['address'] as String
     ..addressIndex = json['addressIndex'] as String
     ..signature = json['signature'] as String
     ..polkaInfo = json['polkaInfo'] as String
     ..position = json['position'] as int
-    ..currency = json['currency'] as String
-    ..language = json['language'] as String;
+    ..isPressed = json['isPressed'] as bool;
 }
 
 Map<String, dynamic> _$CoinDetailToJson(CoinDetail instance) =>
@@ -77,15 +72,10 @@ Map<String, dynamic> _$CoinDetailToJson(CoinDetail instance) =>
       'chainId': instance.chainId,
       'rpcHost': instance.rpcHost,
       'blacklistInfo': instance.blacklistInfo,
-      'mnemonic': instance.mnemonic,
-      'password': instance.password,
-      'name': instance.name,
-      'isSelect': instance.isSelect,
       'address': instance.address,
       'addressIndex': instance.addressIndex,
       'signature': instance.signature,
       'polkaInfo': instance.polkaInfo,
       'position': instance.position,
-      'currency': instance.currency,
-      'language': instance.language,
+      'isPressed': instance.isPressed,
     };
