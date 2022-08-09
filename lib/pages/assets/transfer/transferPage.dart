@@ -53,7 +53,7 @@ class _TransferPageState extends State<TransferPage> {
 
   ui.Image _image;
 
-  int rate = 0;
+  int rate = 460;
   String currency;
 
   PolkawalletPlugin _chainTo;
@@ -756,11 +756,6 @@ class _TransferPageState extends State<TransferPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _getTxFee();
 
-      print("lang========${Localizations.localeOf(context).toString()}");
-      print("network========${widget.service.store.settings.network}");
-      print(
-          "widget.service.keyring.current==========${widget.service.keyring.current}");
-
       load('assets/images/icon_slider.png').then((i) {
         setState(() {
           _image = i;
@@ -835,11 +830,8 @@ class _TransferPageState extends State<TransferPage> {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        print("lang========${Localizations.localeOf(context).toString()}");
-        print("local========${I18n.of(context).locale}");
-        print("languageCode========${I18n.of(context).locale.languageCode}");
         final dic = I18n.of(context).getDic(i18n_full_dic_app, 'assets');
-        
+
         final symbol =
             (widget.service.plugin.networkState.tokenSymbol ?? [''])[0];
         final decimals =
@@ -978,13 +970,8 @@ class _TransferPageState extends State<TransferPage> {
                                             lengthMax: 6,
                                           ),
                                           hintStyle: TextStyle(
-                                            color: Color(0xFF999999),
-                                            fontSize: 17,
-                                            fontFamily: 'PingFangSC-Regular',
-                                            textBaseline:
-                                                TextBaseline.alphabetic,
-                                            height: 1,
-                                          ),
+                                              color: Color(0xFF999999),
+                                              fontSize: 17),
                                           initialValue: _accountTo,
                                           // formKey: _formKey,
                                           onChanged: (KeyPairData acc) async {
@@ -1175,7 +1162,7 @@ class _TransferPageState extends State<TransferPage> {
                                   ),
                                 ],
                               )),
-                        )
+                        ),
                       ],
                     ),
                   ),
