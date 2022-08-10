@@ -156,7 +156,7 @@ class ApiAccount {
   }
 
   Future<dynamic> getPasswordResult() async {
-    var result = BoostNavigator.instance.push("password");
+    var result = BoostNavigator.instance.push("com.bitpie.password");
     result.then((value) => {
           if (value != null) {debugPrint("${value}")}
         });

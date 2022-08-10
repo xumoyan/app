@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:polka_module/global.dart';
 import 'package:polka_module/store/types/coinData.dart';
 import 'package:polka_module/store/types/coinDetail.dart';
@@ -16,13 +17,15 @@ import 'package:polkawallet_sdk/api/types/verifyResult.dart';
 import 'dart:async';
 
 class CreateAccountEntryPage extends StatefulWidget {
-  CreateAccountEntryPage(this.service, this.plugins, this.initNetwork);
+  CreateAccountEntryPage(
+      this.service, this.plugins, this.initNetwork, this.initApi);
 
   static final String route = '/account/entry';
   final List<PolkawalletPlugin> plugins;
   final AppService service;
   final Future<AppService> Function(String,
       {NetworkParams node, PageRouteParams pageRoute}) initNetwork;
+  final Future<void> Function(AppService service) initApi;
 
   @override
   _CreateAccountEntryPage createState() => _CreateAccountEntryPage();
@@ -31,23 +34,23 @@ class CreateAccountEntryPage extends StatefulWidget {
 class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   BasicMessageChannel<String> channel =
       BasicMessageChannel("BasicMessageChannelPlugin", StringCodec());
-  CoinData _coinData;
+  CoinData _coinData = null;
   bool isClicked = false;
   String oldNetwork;
   bool isTimeout = false;
 
   @override
   void initState() {
+    super.initState();
     channel.setMessageHandler((message) => Future<String>(() {
           setState(() {
             _coinData = CoinData.fromJson(jsonDecode(message));
           });
           return message;
         }));
-    super.initState();
+
     // _coinData = CoinData.fromJson(jsonDecode(
     //     "{\"name\":\"noname-652799191467\",\"selectCoin\":\"polka_polkadot_dot\",\"mnemonic\":\"coach dress fade spray suggest purse obey special spot own cabin match\",\"currency\":\"CNY\",\"language\":\"zh\",\"position\":2,\"coinDetails\":[{\"balance\":\"0\",\"chainId\":0,\"coinCode\":\"polka_kusama_ksm\",\"coinEvmTokenId\":0,\"coinName\":\"kusama\",\"customrpc\":false,\"decimals\":0,\"isFirst\":false,\"isPressed\":false,\"isFixed\":false,\"isOpen\":0,\"isSubLast\":false,\"level\":0,\"position\":2,\"pricePrecision\":2,\"reputation\":0,\"sortNum\":2110281,\"unitDecimal\":10},{\"balance\":\"0\",\"chainId\":0,\"coinCode\":\"polka_polkadot_dot\",\"coinEvmTokenId\":0,\"coinName\":\"polkadot\",\"customrpc\":false,\"decimals\":0,\"isFirst\":false,\"isPressed\":false,\"isFixed\":false,\"isOpen\":0,\"isSubLast\":false,\"level\":0,\"position\":3,\"pricePrecision\":2,\"reputation\":0,\"sortNum\":2099087,\"unitDecimal\":10}]}"));
-    // print("=========${_coinData}");
   }
 
   String getCoinCode(String coinCode) {
@@ -102,9 +105,9 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   void _selectCoin(CoinDetail coinDetail) async {
     if (_coinData.mnemonic != null &&
         _coinData.mnemonic.isNotEmpty &&
-        isClicked == false) {
+        isClicked == false &&
+        widget.service.plugin.basic.name != coinDetail.coinName) {
       oldNetwork = widget.service.plugin.basic.name;
-      print("old network === ${oldNetwork}");
       setState(() {
         isClicked = true;
         isTimeout = false;
@@ -115,15 +118,10 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
           isTimeout = true;
         });
         if (d == 'timeout') {
-          print("time out handle ======");
           final service = await widget.initNetwork(oldNetwork);
-          print("1====${service.store.settings.network}");
-          print("2====${widget.service.store.settings.network}");
           service.keyring.setCurrent(service.keyring.current);
           service.plugin.changeAccount(service.keyring.current);
-          print("time out handle ======end11");
         }
-        print("time out handle ======end");
         channel.send(d);
       });
     } else {
@@ -146,14 +144,29 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   Future<String> getSignature(CoinDetail coinDetail) async {
     channel.send("Loading");
     final service = await widget.initNetwork(coinDetail.coinName);
+    await widget.initApi(service);
     service.keyring.setCurrent(service.keyring.current);
     service.plugin.changeAccount(service.keyring.current);
     _changeLang(_coinData.language, service);
-    while (service.keyring.current.address == null && !isTimeout) {
+
+    print("networkState========${service.plugin.networkState}");
+    print("tokenSymbol========${service.plugin.networkState.tokenSymbol}");
+
+    VerifyResult verifyResult = null;
+    String signature = null;
+    final params = SignAsExtensionParam();
+    params.msgType = "pub(bytes.sign)";
+
+    while ((service.keyring.current.address == null ||
+        signature == null ||
+        verifyResult == null ||
+        !verifyResult.isValid)) {
+      if (isTimeout) {
+        return "timeout";
+      }
       try {
         service.store.account.setNewAccountKey(_coinData.mnemonic);
         service.store.account.setNewAccount(_coinData.name, password);
-
         final acc = await service.account.importAccount(
           keyType: KeyType.mnemonic,
           cryptoType: CryptoType.sr25519,
@@ -168,34 +181,29 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
         );
 
         service.account.closeBiometricDisabled(acc['pubKey']);
+
+        params.request = {
+          "address": service.keyring.current.address,
+          "data": service.keyring.current.address,
+        };
+
+        final signResult =
+            await Future.any([retry(), signAsExtension(service, params)]);
+        if (signResult == "timeout") {
+          continue;
+        } else {
+          signature = signResult;
+        }
+        final verify =
+            await Future.any([retry(), signatureVerify(service, signature)]);
+        if (verify == "timeout") {
+          continue;
+        } else {
+          verifyResult = verify;
+        }
       } on Exception catch (err) {
         print("err =======${err}");
-      }
-    }
-    VerifyResult verifyResult = null;
-    String signature = null;
-    final params = SignAsExtensionParam();
-    params.msgType = "pub(bytes.sign)";
-    params.request = {
-      "address": service.keyring.current.address,
-      "data": service.keyring.current.address,
-    };
-    while (
-        (signature == null || verifyResult == null || !verifyResult.isValid) &&
-            !isTimeout) {
-      final signResult =
-          await Future.any([retry(), signAsExtension(service, params)]);
-      if (signResult == "timeout") {
         continue;
-      } else {
-        signature = signResult;
-      }
-      final verify =
-          await Future.any([retry(), signatureVerify(service, signature)]);
-      if (verify == "timeout") {
-        continue;
-      } else {
-        verifyResult = verify;
       }
     }
 
@@ -282,8 +290,9 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
-            child: Column(
-          children: [..._buildCoinList()],
-        )));
+          child: _coinData != null
+              ? Column(children: [..._buildCoinList()])
+              : Container(),
+        ));
   }
 }

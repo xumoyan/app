@@ -834,6 +834,9 @@ class _TransferPageState extends State<TransferPage> {
 
         final symbol =
             (widget.service.plugin.networkState.tokenSymbol ?? [''])[0];
+        print("symbol========${widget.service.plugin.networkState}");
+        print(
+            "symbol========${widget.service.plugin.networkState.tokenSymbol}");
         final decimals =
             (widget.service.plugin.networkState.tokenDecimals ?? [12])[0];
 
@@ -945,6 +948,13 @@ class _TransferPageState extends State<TransferPage> {
                                             addressBookPressed: () {
                                               BoostNavigator.instance.push(
                                                   'native_present_AddressBookActivity',
+                                                  arguments: {
+                                                    'test': '123123'
+                                                  });
+                                            },
+                                            scanAddressPressed: () {
+                                              BoostNavigator.instance.push(
+                                                  'com.bitpie.qrscan',
                                                   arguments: {
                                                     'test': '123123'
                                                   });
