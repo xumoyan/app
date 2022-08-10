@@ -17,15 +17,13 @@ import 'package:polkawallet_sdk/api/types/verifyResult.dart';
 import 'dart:async';
 
 class CreateAccountEntryPage extends StatefulWidget {
-  CreateAccountEntryPage(
-      this.service, this.plugins, this.initNetwork, this.initApi);
+  CreateAccountEntryPage(this.service, this.plugins, this.initNetwork);
 
   static final String route = '/account/entry';
   final List<PolkawalletPlugin> plugins;
   final AppService service;
   final Future<AppService> Function(String,
       {NetworkParams node, PageRouteParams pageRoute}) initNetwork;
-  final Future<void> Function(AppService service) initApi;
 
   @override
   _CreateAccountEntryPage createState() => _CreateAccountEntryPage();
@@ -38,10 +36,14 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   bool isClicked = false;
   String oldNetwork;
   bool isTimeout = false;
+  AppService mService;
 
   @override
   void initState() {
     super.initState();
+    setState(() {
+      mService = widget.service;
+    });
     channel.setMessageHandler((message) => Future<String>(() {
           setState(() {
             _coinData = CoinData.fromJson(jsonDecode(message));
@@ -103,32 +105,33 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   }
 
   void _selectCoin(CoinDetail coinDetail) async {
-    if (_coinData.mnemonic != null &&
-        _coinData.mnemonic.isNotEmpty &&
-        isClicked == false &&
-        widget.service.plugin.basic.name != coinDetail.coinName) {
-      oldNetwork = widget.service.plugin.basic.name;
-      setState(() {
-        isClicked = true;
-        isTimeout = false;
-      });
-      Future.any([timeout(), getSignature(coinDetail)]).then((d) async {
+    if (mService.plugin.basic.name != coinDetail.coinName) {
+      if (_coinData.mnemonic != null &&
+          _coinData.mnemonic.isNotEmpty &&
+          isClicked == false) {
+        oldNetwork = widget.service.plugin.basic.name;
+        setState(() {
+          isClicked = true;
+          isTimeout = false;
+        });
+        Future.any([timeout(), getSignature(coinDetail)]).then((d) async {
+          setState(() {
+            isClicked = false;
+            isTimeout = true;
+          });
+          if (d == 'timeout') {
+            final service = await widget.initNetwork(oldNetwork);
+            service.keyring.setCurrent(service.keyring.current);
+            service.plugin.changeAccount(service.keyring.current);
+          }
+          channel.send(d);
+        });
+      } else {
         setState(() {
           isClicked = false;
-          isTimeout = true;
         });
-        if (d == 'timeout') {
-          final service = await widget.initNetwork(oldNetwork);
-          service.keyring.setCurrent(service.keyring.current);
-          service.plugin.changeAccount(service.keyring.current);
-        }
-        channel.send(d);
-      });
-    } else {
-      setState(() {
-        isClicked = false;
-      });
-      channel.send("Not Spuurot");
+        channel.send("Not Spuurot");
+      }
     }
   }
 
@@ -144,19 +147,14 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
   Future<String> getSignature(CoinDetail coinDetail) async {
     channel.send("Loading");
     final service = await widget.initNetwork(coinDetail.coinName);
-    await widget.initApi(service);
     service.keyring.setCurrent(service.keyring.current);
     service.plugin.changeAccount(service.keyring.current);
     _changeLang(_coinData.language, service);
-
-    print("networkState========${service.plugin.networkState}");
-    print("tokenSymbol========${service.plugin.networkState.tokenSymbol}");
 
     VerifyResult verifyResult = null;
     String signature = null;
     final params = SignAsExtensionParam();
     params.msgType = "pub(bytes.sign)";
-
     while ((service.keyring.current.address == null ||
         signature == null ||
         verifyResult == null ||
@@ -206,7 +204,9 @@ class _CreateAccountEntryPage extends State<CreateAccountEntryPage> {
         continue;
       }
     }
-
+    setState(() {
+      mService = service;
+    });
     coinDetail.signature = signature;
     coinDetail.address = service.keyring.current.address;
     coinDetail.addressIndex = pathClient;

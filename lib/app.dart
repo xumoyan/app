@@ -269,7 +269,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
   }
 
   Future<void> _startPlugin(AppService service, {NetworkParams node}) async {
-    _initWalletConnect();
+    // _initWalletConnect();
 
     setState(() {
       _connectedNode = null;
@@ -527,6 +527,8 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       final store = AppStore(storage);
       await store.init();
 
+      // await _showGuide(context, storage);
+
       final pluginIndex = widget.plugins
           .indexWhere((e) => e.basic.name == store.settings.network);
       final service = AppService(
@@ -551,7 +553,23 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
         _changeLang(null);
       }
 
-      await _initApi(_service);
+      final useLocalJS = WalletApi.getPolkadotJSVersion(
+            _store.storage,
+            _service.plugin.basic.name,
+            _service.plugin.basic.jsCodeVersion,
+          ) >
+          _service.plugin.basic.jsCodeVersion;
+
+      await _service.plugin.beforeStart(_keyring,
+          jsCode: useLocalJS
+              ? WalletApi.getPolkadotJSCode(
+                  _store.storage, _service.plugin.basic.name)
+              : null, socketDisconnectedAction: () {
+        UI.throttle(() {
+          _dropsServiceCancel();
+          _restartWebConnect(_service);
+        });
+      });
 
       if (_keyring.keyPairs.length > 0) {
         _store.assets.loadCache(_keyring.current, _service.plugin.basic.name);
@@ -561,26 +579,6 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       await _checkJSCodeUpdate(context, _service.plugin, needReload: false);
     }
     return _keyring.allAccounts.length;
-  }
-
-  Future<void> _initApi(AppService service) async {
-    final useLocalJS = WalletApi.getPolkadotJSVersion(
-          service.store.storage,
-          service.plugin.basic.name,
-          service.plugin.basic.jsCodeVersion,
-        ) >
-        service.plugin.basic.jsCodeVersion;
-
-    await service.plugin.beforeStart(service.keyring,
-        jsCode: useLocalJS
-            ? WalletApi.getPolkadotJSCode(
-                service.store.storage, service.plugin.basic.name)
-            : null, socketDisconnectedAction: () {
-      UI.throttle(() {
-        _dropsServiceCancel();
-        _restartWebConnect(service);
-      });
-    });
   }
 
   Map<String, FlutterBoostRouteFactory> _getRoutes() {
@@ -613,7 +611,7 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
                         ? HomePage(_service, widget.plugins, _connectedNode,
                             _checkJSCodeUpdate, _switchNetwork, _changeNode)
                         : CreateAccountEntryPage(
-                            _service, widget.plugins, _initNetwork, _initApi);
+                            _service, widget.plugins, _initNetwork);
                   } else {
                     return Container(color: Theme.of(context).hoverColor);
                   }
@@ -717,8 +715,8 @@ class _WalletAppState extends State<WalletApp> with WidgetsBindingObserver {
       CreateAccountEntryPage.route: (settings, uniqueId) {
         return CupertinoPageRoute(
             settings: settings,
-            builder: (BuildContext context) => CreateAccountEntryPage(
-                _service, widget.plugins, _initNetwork, _initApi));
+            builder: (BuildContext context) =>
+                CreateAccountEntryPage(_service, widget.plugins, _initNetwork));
       },
       CreateAccountPage.route: (settings, uniqueId) {
         return CupertinoPageRoute(
